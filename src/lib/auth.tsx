@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut, type User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db, google } from './firebase';
 import type { RoleDoc } from '../types';
@@ -10,6 +10,7 @@ interface AuthState {
   loading: boolean;
   error: string;
   signIn: () => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
   signOutNow: () => Promise<void>;
 }
 
@@ -22,11 +23,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState('');
 
   useEffect(() => onAuthStateChanged(auth, async (u) => {
-    setUser(u); setRole(null); setError('');
+    setUser(u); setRole(null); if (u) setError(''); // keep the 'admins must use Google' message after the forced sign-out
     if (u?.email) {
       try {
         const snap = await getDoc(doc(db, 'roles', u.email.toLowerCase()));
-        setRole(snap.exists() ? (snap.data() as RoleDoc) : null);
+        const r = snap.exists() ? (snap.data() as RoleDoc) : null;
+        // Admins must use Google; test passwords are only for engineers and supervisors.
+        if (r?.role === 'admin' && (await u.getIdTokenResult()).signInProvider !== 'google.com') {
+          await signOut(auth);
+          setError('Admins must sign in with Google.');
+          setLoading(false);
+          return;
+        }
+        setRole(r);
       } catch (e: any) {
         setError(e?.message || 'Could not read your access');
       }
@@ -45,8 +54,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithPassword = async (email: string, password: string) => {
+    setError('');
+    try {
+      await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+    } catch (e: any) {
+      const bad = ['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-email'];
+      setError(bad.includes(e?.code) ? 'Wrong email or password.' : e?.code === 'auth/too-many-requests' ? 'Too many attempts. Try again in a few minutes.' : e?.message || 'Sign-in failed');
+    }
+  };
+
   return (
-    <Ctx.Provider value={{ user, role, loading, error, signIn, signOutNow: () => signOut(auth) }}>
+    <Ctx.Provider value={{ user, role, loading, error, signIn, signInWithPassword, signOutNow: () => signOut(auth) }}>
       {children}
     </Ctx.Provider>
   );

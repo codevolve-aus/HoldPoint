@@ -7,11 +7,13 @@ service cloud.firestore {
     function hasRole() { return signedIn() && exists(/databases/$(database)/documents/roles/$(myEmail())); }
     function me() { return get(/databases/$(database)/documents/roles/$(myEmail())).data; }
     function isRole(r) { return hasRole() && me().role == r; }
+    // Admins must sign in with Google. Temporary test passwords are for engineers and supervisors only.
+    function isAdmin() { return isRole('admin') && request.auth.token.firebase.sign_in_provider == 'google.com'; }
     function inMyRegion(region) { return isRole('supervisor') && region == me().region; }
 
     match /roles/{email} {
-      allow read: if signedIn() && (myEmail() == email || isRole('admin') || isRole('engineer'));
-      allow write: if isRole('admin');
+      allow read: if signedIn() && (myEmail() == email || isAdmin() || isRole('engineer'));
+      allow write: if isAdmin();
     }
 
     // Projects carry their ITP. Engineers set them up; supervisors see only their region.
@@ -37,7 +39,7 @@ service cloud.firestore {
     }
 
     match /audit/{id} {
-      allow read: if isRole('admin') || isRole('engineer');
+      allow read: if isAdmin() || isRole('engineer');
       allow create: if hasRole() && request.resource.data.byEmail == myEmail();
     }
   }
