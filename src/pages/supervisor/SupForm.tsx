@@ -4,7 +4,7 @@ import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/auth';
 import { openSubmission, STATUS_LABEL } from '../../lib/db';
-import { isoToDMY, validate } from '../../lib/checks';
+import { isoToDMY, nowText, validate } from '../../lib/checks';
 import { templateFor } from '../../data/templates';
 import FormRenderer from '../../components/FormRenderer';
 import type { Project, Submission, Values } from '../../types';
@@ -19,6 +19,7 @@ export default function SupForm() {
   const [saved, setSaved] = useState('');
   const [showMissing, setShowMissing] = useState(false);
   const [loadError, setLoadError] = useState('');
+  const [reopenError, setReopenError] = useState('');
   const timer = useRef<number>();
 
   useEffect(() => {
@@ -58,6 +59,17 @@ export default function SupForm() {
     }, 600);
   };
 
+  // "Not needed today" can be undone here as well as on Today's forms.
+  const markNeeded = async () => {
+    setReopenError('');
+    try {
+      await updateDoc(doc(db, 'submissions', sub.id), {
+        status: 'draft',
+        history: [...(sub.history || []), { at: nowText(), by: user!.email!, what: 'Marked needed again' }]
+      });
+    } catch (e: any) { setReopenError(e?.message || 'Could not change it. Check your connection and try again.'); }
+  };
+
   const issues = validate(tpl, values);
   const missing = issues.filter((i) => i.kind === 'missing');
   const spec = issues.filter((i) => i.kind === 'spec');
@@ -72,7 +84,13 @@ export default function SupForm() {
       {sub.status === 'returned' && (
         <div className="note warn"><strong>Returned by the engineer.</strong> {sub.returnNote} Fix the fields with comments below, then submit again from Today's forms.</div>
       )}
-      {!editable && <div className="note info">This form is {STATUS_LABEL[sub.status].toLowerCase()} and can't be changed.</div>}
+      {sub.status === 'not_needed' ? (
+        <div className="note info" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+          <span>This form is marked <strong>not needed today</strong>, so it can't be filled in.</span>
+          <button className="btn pri" onClick={markNeeded}>Mark as needed and fill it in</button>
+          {reopenError && <span className="err">{reopenError}</span>}
+        </div>
+      ) : !editable && <div className="note info">This form is {STATUS_LABEL[sub.status].toLowerCase()} and can't be changed.</div>}
       <div className="note info">Blank form created from the ITP. Photos are saved under the field where you took them.</div>
 
       <FormRenderer tpl={tpl} values={values} submissionId={sub.id} header={sub.header} dateText={isoToDMY(sub.date)}

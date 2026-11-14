@@ -91,7 +91,7 @@ export default function SupDay() {
                   <div className="row">
                     <span className={'chip ' + (s?.status || 'draft')}>{s ? STATUS_LABEL[s.status] : 'Not started'}</span>
                     {editable(s) && s?.status !== 'returned' && (
-                      <button className="link" style={{ fontSize: 13 }} onClick={() => setNotNeeded(f.code, s?.status !== 'not_needed')}>{s?.status === 'not_needed' ? 'Needed' : 'Not needed'}</button>
+                      <button className="link" style={{ fontSize: 13 }} onClick={() => setNotNeeded(f.code, s?.status !== 'not_needed')}>{s?.status === 'not_needed' ? 'Mark needed' : 'Mark not needed'}</button>
                     )}
                   </div>
                 </div>
