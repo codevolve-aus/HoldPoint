@@ -18,20 +18,34 @@ export default function SupForm() {
   const [values, setValues] = useState<Values>({});
   const [saved, setSaved] = useState('');
   const [showMissing, setShowMissing] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const timer = useRef<number>();
 
   useEffect(() => {
     let unsub = () => {};
+    setLoadError('');
     (async () => {
+      if (!tpl) throw new Error(`There is no form template for ${code}.`);
       const p = await getDoc(doc(db, 'projects', pid!));
+      if (!p.exists()) throw new Error('This project no longer exists.');
       const project = { id: p.id, ...(p.data() as Omit<Project, 'id'>) };
       const s = await openSubmission(project, date!, code!, user!.email!);
       setSub(s); setValues(s.values);
-      unsub = onSnapshot(doc(db, 'submissions', s.id), (d) => { const x = { id: d.id, ...(d.data() as Omit<Submission, 'id'>) }; setSub(x); });
-    })();
+      unsub = onSnapshot(doc(db, 'submissions', s.id), (d) => { const x = { id: d.id, ...(d.data() as Omit<Submission, 'id'>) }; setSub(x); },
+        (e) => setLoadError(e.message));
+    })().catch((e: any) => {
+      console.error(`Could not open ${code}`, e);
+      setLoadError(`${e?.code ? e.code + ': ' : ''}${e?.message || String(e)}`);
+    });
     return () => unsub();
   }, [pid, date, code, user]);
 
+  if (loadError && !sub) return (
+    <main className="page narrow">
+      <Link to={`/supervisor/p/${pid}`} className="sub">‹ Today's forms</Link>
+      <div className="err">Could not open {code}: {loadError}</div>
+    </main>
+  );
   if (!sub) return <main className="page narrow"><span className="sub">Opening form…</span></main>;
   const editable = sub.status === 'draft' || sub.status === 'returned';
 
