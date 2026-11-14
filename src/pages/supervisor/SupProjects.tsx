@@ -12,7 +12,7 @@ export default function SupProjects() {
   const [err, setErr] = useState('');
 
   useEffect(() => onSnapshot(query(collection(db, 'projects'), where('region', '==', role!.region)),
-    (s) => setProjects(s.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Project, 'id'>) }))), (e) => setErr(e.message)), [role]);
+    (s) => setProjects(s.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Project, 'id'>) })).filter((p) => p.status !== 'closed')), (e) => setErr(e.message)), [role]);
 
   return (
     <main className="page narrow">

@@ -12,6 +12,14 @@ service firebase.storage {
                    && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
     }
 
+    // Original ITP files uploaded by the engineer (PDF or Word), kept per revision.
+    match /itps/{projectId}/{file} {
+      allow read: if hasRole();
+      allow create: if hasRole() && roleDoc().data.role == 'engineer' && request.resource.size < 25 * 1024 * 1024
+                    && (request.resource.contentType == 'application/pdf'
+                        || request.resource.contentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
+
     // Approved PDFs: Approved/Region/Job Project/Site location/Date/file.pdf
     match /Approved/{path=**} {
       allow read: if hasRole();

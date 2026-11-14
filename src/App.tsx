@@ -4,7 +4,8 @@ import { configured } from './lib/firebase';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import AdminUsers from './pages/admin/AdminUsers';
-import ProjectsSetup from './pages/admin/ProjectsSetup';
+import Itps from './pages/engineer/Itps';
+import ItpUpload from './pages/engineer/ItpUpload';
 import SupProjects from './pages/supervisor/SupProjects';
 import SupDay from './pages/supervisor/SupDay';
 import SupForm from './pages/supervisor/SupForm';
@@ -44,7 +45,8 @@ export default function App() {
           <Route path="/engineer" element={<Queue />} />
           <Route path="/engineer/review/:id" element={<Review />} />
           <Route path="/engineer/records" element={<Records />} />
-          <Route path="/engineer/projects" element={<ProjectsSetup />} />
+          <Route path="/engineer/itps" element={<Itps />} />
+          <Route path="/engineer/itp/new" element={<ItpUpload />} />
         </>}
         {role.role === 'supervisor' && <>
           <Route path="/supervisor" element={<SupProjects />} />

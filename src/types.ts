@@ -64,13 +64,17 @@ export interface FormTemplate {
 /* ---------- Project, ITP, submissions ---------- */
 
 export interface ItpItem {
-  no: number; phase: string; activity: string; criteria: string;
-  reference: string; spec: string; forms: string[]; inspectedBy: string[]; type: string;
+  no: number; activity: string; criteria: string;
+  reference: string; spec: string;
+  forms: string[];         // QF form templates this item creates (from the reference column, confirmed by the engineer)
+  inspectedBy: string[]; type: string;
 }
 
 export interface Itp {
-  docId: string; rev: string; itemName: string; project: string; notes: string[]; items: ItpItem[];
+  docId: string; rev: string; itemName: string; project: string; date?: string; notes: string[]; items: ItpItem[];
 }
+
+export interface ItpRevision { rev: string; file: string; fileName: string; publishedAt: string; publishedBy: string; items: number }
 
 export interface Project {
   id: string;
@@ -81,7 +85,10 @@ export interface Project {
   location: string;        // site location the ITP covers
   responsible: string;
   itpAuthorisedBy: string;
-  itp: Itp;
+  itp: Itp;                // current revision
+  itpFile?: string;        // storage path of the uploaded original
+  itpRevs?: ItpRevision[]; // every published revision, newest last
+  status?: 'active' | 'closed';
   createdAt?: any;
 }
 
@@ -99,6 +106,7 @@ export interface Submission {
   date: string;            // YYYY-MM-DD, the day of work
   formCode: string;
   templateRev: string;
+  itpRev?: string;         // ITP revision the form was created under
   version: number;
   status: Status;
   header: Record<string, string>;

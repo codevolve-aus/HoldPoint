@@ -5,7 +5,10 @@ MVP: the supervisor ↔ engineer quality workflow.
 A Progressive Web App (installable on a phone, works offline) for the ITP-driven QA workflow:
 
 1. **Admin** gives Google accounts a role: admin, engineer or supervisor (supervisors get one region).
-2. **Engineer** publishes the ITP (QF-01 Rev 0, pit internals) to a project, site location and region.
+2. **Engineer** uploads each project's own ITP (PDF or Word). HoldPoint reads the header, every item and the QF forms
+   in the reference column; the engineer checks it side by side with the original, fixes anything, resolves forms
+   that don't have a template yet, and publishes it to the project, site location and region.
+   A new revision replaces it for new days only; forms already filled stay on the revision they were made under.
 3. **Supervisor** (only sees their region) opens the project, reads the locked ITP, fills the QF forms the ITP asks for
    (QF-45c, QF-20b, QF-21, QF-23, QF-30) with photos and signatures, and submits them at the end of the day.
 4. **Engineer** reviews each form: values are checked against the ITP specs, comments go on single fields,
@@ -75,7 +78,8 @@ Open http://localhost:5173 → **Sign in with Google**.
 **Demo script (needs three Google accounts, or use your own for admin and two others):**
 
 1. As **admin** → Users → add an **engineer** (All regions) and a **supervisor** (region Sydney).
-2. Sign out, sign in as the **engineer** → *Projects and ITPs* → **Publish to Sydney supervisors**.
+2. Sign out, sign in as the **engineer** → *ITPs and projects* → **New ITP** → choose the project's ITP file →
+   check the job details, items and forms against the original on the left → tick the check box → **Publish**.
 3. Sign in as the **supervisor** (ideally on a phone, see step 6) → *My projects* → Pit 1 internals →
    fill QF-21 (photos, readings, signature), mark forms you don't need as *Not needed*, **Submit**.
 4. Sign in as the **engineer** → *Review queue* → open the form → comment on a field → **Return**.
@@ -101,7 +105,8 @@ Offline: form entries are kept on the phone and sync when there's signal. Photos
 
 ```
 src/
-  data/itp-pit-internals.json   the real ITP content (24 items, specs, reference forms, notes)
+  lib/itpParse.ts               reads ITP header, items and QF form references (PDF text + table borders, or Word rows)
+  lib/itpRead.ts                loads the uploaded PDF (pdf.js) or Word file (mammoth) in the browser
   data/templates.ts             the 5 QF form templates: fields, required, specs (ITP refs), show-if rules
   lib/checks.ts                 spec checks (min/max/allowed/minFrom, dew point margin), required fields
   lib/db.ts                     opening a day's form, header from the ITP (locked), audit log
@@ -109,11 +114,12 @@ src/
   components/FormRenderer.tsx   renders any template: edit (supervisor) or review + comments (engineer)
   pages/admin                   users and roles
   pages/supervisor              projects in my region, day view (forms + ITP), form, returned forms
-  pages/engineer                review queue, review/approve/return, QA records register, projects
+  pages/engineer                review queue, review/approve/return, QA records register,
+                                ITPs and projects, ITP upload and check
 firestore.rules / storage.rules role and region access enforced on the server
 ```
 
-**Data (Firestore):** `roles/{email}`, `projects/{id}` (with its ITP), `submissions/{project_date_form}`
+**Data (Firestore):** `roles/{email}`, `projects/{id}` (with its current ITP and every revision), `submissions/{project_date_form}`
 (values, comments, version, status, history), `register/{id}` (approved files), `audit/{id}`.
 
 **Change a form:** edit `src/data/templates.ts` (labels, options, required, specs). Bump `rev` when you do.
@@ -121,10 +127,11 @@ Moving templates into the database and editing them on an Admin page is a later 
 
 ## Next phases
 
-1. Upload any ITP (PDF/Word) and read its items and reference forms, instead of the bundled one
-2. PDFs from the company's Word templates (exact paper layout), converted by Microsoft 365
-3. File approved PDFs to SharePoint via Microsoft Graph
-4. Admin: form templates and ITP-to-form mapping as data, with revisions and approval
-5. Crew app: clock on/off, tasks, roster; supervisor hours approval and daily report
+1. PDFs from the company's Word templates (exact paper layout), converted by Microsoft 365
+2. File approved PDFs to SharePoint via Microsoft Graph
+3. Admin: form templates and ITP-to-form mapping as data, with revisions and approval
+4. Crew app: clock on/off, tasks, roster; supervisor hours approval and daily report
 
-All names, job numbers and the client in the sample data are dummy values. The ITP content is from the uploaded ITP.
+**Reading ITPs:** works on PDFs exported from Word/Excel and on .docx files. Scanned PDFs (images) can't be read;
+the engineer would type the items in. Column edges come from the table borders; if a PDF has none, they're estimated
+from the headings and the confirm screen warns the engineer.

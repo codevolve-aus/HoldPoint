@@ -4,7 +4,7 @@ import { useAuth } from '../lib/auth';
 
 const MENUS: Record<string, [string, string][]> = {
   admin: [['/admin', 'Users']],
-  engineer: [['/engineer', 'Review queue'], ['/engineer/records', 'QA records'], ['/engineer/projects', 'Projects and ITPs']],
+  engineer: [['/engineer', 'Review queue'], ['/engineer/itps', 'ITPs and projects'], ['/engineer/records', 'QA records']],
   supervisor: [['/supervisor', 'My projects'], ['/supervisor/returned', 'Returned forms']]
 };
 

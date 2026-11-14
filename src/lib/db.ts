@@ -18,10 +18,10 @@ export async function openSubmission(p: Project, date: string, code: string, ema
   if (snap.exists()) return { id, ...(snap.data() as Omit<Submission, 'id'>) };
   const tpl = templateFor(code)!;
   const s: Omit<Submission, 'id'> = {
-    projectId: p.id, region: p.region, date, formCode: code, templateRev: tpl.rev, version: 1, status: 'draft',
+    projectId: p.id, region: p.region, date, formCode: code, templateRev: tpl.rev, itpRev: p.itp.rev, version: 1, status: 'draft',
     header: headerFrom(p),
     values: initialValues(tpl), comments: {}, supervisorEmail: email.toLowerCase(),
-    history: [{ at: nowText(), by: email, what: 'Blank form created from the ITP' }]
+    history: [{ at: nowText(), by: email, what: `Blank form created from ITP ${p.itp.docId} ${p.itp.rev}` }]
   };
   await setDoc(r, s);
   return { id, ...s };

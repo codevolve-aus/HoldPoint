@@ -111,7 +111,7 @@ export default function SupDay() {
         <div className="note info">The ITP is locked. Its reference column decides which QF forms are created each day.</div>
         {project.itp.items.map((it) => (
           <section className="card" key={it.no}>
-            <div className="spread"><strong style={{ fontSize: 12, color: '#4B5259' }}>ITEM {it.no} · {it.phase}</strong><span className={'chip ' + it.type}>{it.type}</span></div>
+            <div className="spread"><strong style={{ fontSize: 12, color: '#4B5259' }}>ITEM {it.no}</strong><span className={'chip ' + it.type}>{it.type}</span></div>
             <div style={{ whiteSpace: 'pre-line', fontSize: 14.5, lineHeight: 1.45 }}>{it.activity}</div>
             <div className="sub" style={{ whiteSpace: 'pre-line' }}><strong style={{ color: '#15181C' }}>Specification:</strong> {it.spec}</div>
             <div className="sub" style={{ whiteSpace: 'pre-line' }}><strong style={{ color: '#15181C' }}>Acceptance criteria:</strong> {it.criteria}</div>
