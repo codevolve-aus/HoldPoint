@@ -1,0 +1,378 @@
+{
+ "docId": "QF-01",
+ "rev": "Rev 0",
+ "itemName": "PIT INTERNALS – WSA 201:2021 v2.3 – 8.21 NOV (NOVOLAC EPOXY)",
+ "project": "CONCRETE SURFACE PREPARATION & SURFACE TOLERANT EPOXY COATINGS APPLICATION",
+ "notes": [
+  "Note 1: ITP to be signed off by contractor supervision and client representatives, at least 24 hours notification is to be given to client reps before Hold Point inspection if available.",
+  "Note 2: WFT combs to be retained on Form QF.21 or photographed, DFT readings not relied on, monitor materials usage per m2 for application thickness of coatings system on concrete.",
+  "Note 3: Nominal 650µm DFT including the stripe coated areas, DFT to be within allowable tolerances WSA 201:2021 v2.3 Selection & Application of Protective Coatings & Manufacturer"
+ ],
+ "items": [
+  {
+   "no": 1,
+   "phase": "Start",
+   "activity": "Client to review and approve Inspection and Test Plan with reference to all work scope requirements prior to the commencement of project work.",
+   "criteria": "Inspection and Test Plan reviewed and approved by client representative - project operations can now commence.",
+   "reference": "Inspection and Test Plan",
+   "spec": "WSA 201:2021 v2.3 System 8.21 NOV",
+   "forms": [],
+   "inspectedBy": [
+    "Client Representative"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 2,
+   "phase": "Start",
+   "activity": "Ensure all EH&S and QA forms and checklists are fully completed and compiled into the EH&S Job pack during the project works.",
+   "criteria": "Requirement for all EH&S and QA forms and checklists to be fully completed as required and compiled into Job Packs has been noted and fully understood.",
+   "reference": "EH&S and QA Forms and Checklists",
+   "spec": "Contractor EH&S and QA Procedures",
+   "forms": [],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 3,
+   "phase": "Start",
+   "activity": "SWMS, Preliminary Safety Inspections, Inductions, Training and Pre-start Toolbox completed. All safety systems and entry requirements are completed.",
+   "criteria": "SWMS and all safety requirements read, and responsibilities understood.",
+   "reference": "Job Safety Analysis - SWMS",
+   "spec": "Contractor EH&S and QA Procedures",
+   "forms": [],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 4,
+   "phase": "Start",
+   "activity": "NON-SPECIFIED AREAS –\nEnsure all areas not requiring the exposure of the surface preparation or coating processes are protected / masked to prevent damage and / or entry of foreign materials into unspecified areas. Ensure machined faces are well protected.",
+   "criteria": "Protect, seal, mask or set up barriers to prevent damage and / or entry of foreign materials to unspecified areas exposed to the surface preparation and coating processes.",
+   "reference": "",
+   "spec": "Contractor QA Procedures",
+   "forms": [
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 5,
+   "phase": "Surface prep",
+   "activity": "PRE-BLAST INSPECTION –\nEnsure all surfaces are dry or surface saturated dry, smooth, sound and free from debris and loose material. Surfaces are free from contamination such as oil, grease, dust, loose particles and organic growth. Concrete surfaces are fully cured, laitance-free and free from any traces of shuttering release oils and curing compounds.",
+   "criteria": "All specified surfaces are free from oil, grease and other contaminants; new concrete has been confirmed as fully cured for at least 28 days.",
+   "reference": "AS 1627.1",
+   "spec": "CEILCOTE® 662 FLAKELINE Application Guidelines",
+   "forms": [],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 6,
+   "phase": "Surface prep",
+   "activity": "Degrease, remove any oil, grease and other surface contaminants using a non-alkaline cleaning agent.",
+   "criteria": "All specified surfaces are free from oil, grease and other contaminants by cleaning as per AS 1627.1",
+   "reference": "AS 1627.1",
+   "spec": "WSA 201:2021 v2.3 Section 6.3.1 & 8.21 NOV [T7]",
+   "forms": [
+    "QF-45c"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 7,
+   "phase": "Surface prep",
+   "activity": "High pressure water cleans all specified bund surfaces if require\n3,000 – 5,000",
+   "criteria": "All surfaces have been high-pressure water cleaned and free of foreign matter, laitance, efflorescence, curing compounds and contaminants",
+   "reference": "ASTM D 4258",
+   "spec": "WSA 201:2021 v2.3 Section 8.21 NOV [T7]",
+   "forms": [
+    "QF-45c"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "M"
+  },
+  {
+   "no": 8,
+   "phase": "Surface prep",
+   "activity": "Abrasive blasting concrete surfaces to achieve a surfaces profile of SSPC-SP 13/NACE No. 6 / ICRI CSP1 to CPS3. Open all bug holes and voids and remove all laitance, efflorescence, glaze and loose or bond-inhibiting compounds or coatings, foreign matter and loose materials.\nRECORD SURFACE PREPARATION OF FORM QF-45c.",
+   "criteria": "All specified concrete surfaces abrasive blasted to SSPC-SP 13/NACE No. 6, Surface Preparation of Concrete Surface Profile CSP1 to CPS3. Surfaces are free from laitance, efflorescence, glaze and loose or bond-inhibiting compounds or coatings, foreign matter, bug holes and voids and left in clean and dry condition.",
+   "reference": "ICRI Guideline No 310.2\nCEILCOTE® 680M PRIMER Data sheet",
+   "spec": "WSA 201:2021 v2.3 Section 6.3.3 & 10.3.5/6\nCSP1 to CPS3",
+   "forms": [
+    "QF-45c"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision",
+    "Client Representative",
+    "Asset Owner Representative"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 9,
+   "phase": "Surface prep",
+   "activity": "Clean surface preparation residues from the specified areas using a soft broom or vacuum prior to painting.",
+   "criteria": "Area cleaned and free of residual material, surface is free of loose particles, dust and dry without defects that may be detrimental to the coating system prior to application.",
+   "reference": "",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.4 (a)",
+   "forms": [
+    "QF-45c"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "M"
+  },
+  {
+   "no": 10,
+   "phase": "Surface prep",
+   "activity": "SURFACE CONDITION INSPECTION.\n- Ensure concrete is cured at a minimum of 28 days prior to application.\n- Inspect blast & concrete surface profile\n- Large bug holes, nominate extent of fairing required\n- Exposed z-bar requiring concrete patch repair, measure and quantify areas for repair\n- Identify any surface cracks and repair requirements, quantify lineal meterage during inspection and record on location mapping.\nRECORD LINEAL METERAGE AND CRACK LOCATION & MAPPING\nTake photographs of repair areas",
+   "criteria": "All concrete surfaces have been inspected by Asset Owner & Client representatives. Any cracks, spalling or repair areas have been detected, mapped and measured for repair methodology.\nREPAIR METHODOLOGY TBA\nREPAIRS TO BE COMPLETED ON SEPARATE ITP BEFORE COATINGS APPLICATION COMMENCES",
+   "reference": "Mapping & Measurement Report",
+   "spec": "WSA 201:2021 v2.3 Section 6.2.5.6",
+   "forms": [
+    "QF-45c"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision",
+    "Client Representative",
+    "Asset Owner Representative"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 11,
+   "phase": "Surface prep",
+   "activity": "MOISTURE TEST\nUsing 450mm x 450mm 75-to-150-micron plastic sheet method to determine if the concrete is sufficiently dry to apply the primer. Test every 50 m2 with a minimum of one test for each 10 m of vertical rise commencing within 300 mm of the floor.\nOr Use Digital Moister meter to confirm moisture level is below 6%\nRECORD RESULTS ON FORM QF-20b.\nTake photographs of plastic sheet samples before removal.",
+   "criteria": "No moisture or condensation has been detected after plastic sheet has been in place between 16-hours. All tests carried out in compliance with ASTM D 4263\nResults are recorded on Form QF-20b.",
+   "reference": "ASTM D 4263\nCEILCOTE® 680M PRIMER Data sheet",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & 5.24\nLess than 6%",
+   "forms": [
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 12,
+   "phase": "Surface prep",
+   "activity": "OPEN-OUT & FILL BUG HOLES / VOIDS\nOpen out all nominated bug holes and porosity using needle scaling. Clean debris by vacuuming. Fill any voids that are not paintable using epoxy filler\nFor minor bug holes and voids use Ceilcote® 680 Primer mixed with clean sand to form a smooth mortar paste. For substantial bug holes and voids use of Sika Sikagard®-720 EpoCem Epoxy Pore & Leveling Mortar.\nRECORD BATCH NUMBERS AND FILLING ACTIVITY ON FORM QF-20b",
+   "criteria": "All bug holes, voids have been filled flush with substrate to a consistent and level finish.\nRECORD BATCH NUMBERS AND FILLING ACTIVITY ON FORM QF-20b",
+   "reference": "CEILCOTE® 680M PRIMER\nSIKAGARD®-720 EPOCEM Data Sheets",
+   "spec": "WSA 201:2021 v2.3 Epoxy mortar [P7] (20 mm nominal) & 8.21 NOV [T7]",
+   "forms": [
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision",
+    "Client Representative",
+    "Asset Owner Representative"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 13,
+   "phase": "Coating",
+   "activity": "Check overcoating interval of CEILCOTE® 680M PRIMER / SIKAGARD®-720 EPOCEM and ambient conditions and if satisfactory, mix Parts A and B of CEILCOTE® 680 PRIMER as per manufacturer’s data sheet instructions.\nRECORD PRODUCT BATCH NUMBERS AND AMBIENT CONDITIONS ON FORM QF.20b",
+   "criteria": "Ambient conditions checked and found to be satisfactory as per CEILCOTE® 680 PRIMER Data Sheet.\nAmbient conditions and product batch numbers recorded on Form QF.20b",
+   "reference": "AS 3894.10\nCEILCOTE® 680M PRIMER Data sheet",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & 5.24",
+   "forms": [
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 14,
+   "phase": "Coating",
+   "activity": "PRIMER/SEALER COAT – CEILCOTE® 680M\nApply a stripe coat of CEILCOTE® 680M PRIMER to all difficult to paint areas such as edges, corners, etc. followed by a full coat to all specified surfaces. Check WFT regularly.\nWFT = 125µm - DFT= 50µm\nApply at theoretical coverage of approx. 13.30 m²/litre at microns to yield 75µm\nCHECK AND RECORD WFT USING WFT COMBS, RETAIN ON FORM QF-21.",
+   "criteria": "No prepared surfaces unpainted, all welds and difficult to coat areas stripe coated and a nominal DFT of 50µm achieved including the stripe coated areas.\nNo runs sags, blisters etc.\nWFT Gauges and materials usage / m2 to be recorded on Form QF-21.",
+   "reference": "CEILCOTE® 680M PRIMER Data Sheet",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & 8.21 NOV [T7]\nWFT= 125µm\nDFT= 50µm",
+   "forms": [
+    "QF-21"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 15,
+   "phase": "Coating",
+   "activity": "Check overcoating interval of CEILCOTE® 680M PRIMER ambient conditions and if satisfactory, mix Parts A and B of CEILCOTE® 662 FLAKELINE as per manufacturer’s data sheet instructions.\nRECORD PRODUCT BATCH NUMBERS AND AMBIENT CONDITIONS ON FORM QF.20b",
+   "criteria": "Ambient conditions checked and found to be satisfactory as per CEILCOTE® 662 FLAKELINE Data Sheet.\nAmbient conditions and product batch numbers recorded on Form QF.20b",
+   "reference": "AS 3894.10\nCEILCOTE® 680M PRIMER & CEILCOTE® 662 FLAKELINE Data Sheets",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & 8& 8.21 NOV [T7]",
+   "forms": [
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "W"
+  },
+  {
+   "no": 16,
+   "phase": "Coating",
+   "activity": "FIRST COAT (1ST) – CEILCOTE® 662 FLAKELINE\nApply a stripe coat of CEILCOTE® 662 FLAKELINE to all difficult to paint areas such as edges, corners, etc. followed by a full coat to all specified surfaces. Check WFT regularly.\nWFT = 210µm- DFT= 200µm\nRECORD WFT GAUGES ON FORM QF-21 AND MATERIALS USAGE / m2 ON FORM QF-20",
+   "criteria": "No specified surfaces uncoated, No runs sags, blisters etc. WFT Gauges and materials usage / m2 to be recorded on Form QF-21. Nominal DFT of 200µm of CEILCOTE® 662 FLAKELINE has been achieved including the stripe coated areas.",
+   "reference": "CEILCOTE® 662 FLAKELINE Data Sheet",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & NOV [T7]\nWFT = 210µm\nDFT= 200µm",
+   "forms": [
+    "QF-21",
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "WM"
+  },
+  {
+   "no": 17,
+   "phase": "Coating",
+   "activity": "Check ambient conditions and if satisfactory, mix Parts A and B of CEILCOTE® 662 FLAKELINE as per manufacturer’s data sheet instructions.\nRECORD PRODUCT BATCH NUMBERS AND AMBIENT CONDITIONS ON FORM QF.20b",
+   "criteria": "Ambient conditions checked and found to be satisfactory as per CEILCOTE® 662 FLAKELINE Data Sheet.\nAmbient conditions and product batch numbers recorded on Form QF.20b",
+   "reference": "AS 3894.10\nCEILCOTE® 662 FLAKELINE Data Sheets",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & 8.27 NOV [T7]",
+   "forms": [
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "M"
+  },
+  {
+   "no": 18,
+   "phase": "Coating",
+   "activity": "INTERMEDIATE (2ND) – CEILCOTE® 662 FLAKELINE\nApply a stripe coat of CEILCOTE® 662 FLAKELINE to all difficult to paint areas such as edges, corners, etc. followed by a full coat to all specified surfaces. Check WFT regularly.\nWFT = 210µm- DFT= 200µm\nRECORD WFT GAUGES ON FORM QF-21 AND MATERIALS USAGE / m2 ON FORM QF-20b",
+   "criteria": "No specified surfaces uncoated, No runs sags, blisters etc. WFT Gauges and materials usage / m2 to be recorded on Form QF-21. Nominal DFT of 200µm of CEILCOTE® 662 FLAKELINE has been achieved including the stripe coated areas.",
+   "reference": "CEILCOTE® 662 FLAKELINE Data Sheet",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & NOV [T7]\nWFT = 210µm\nDFT= 200µm",
+   "forms": [
+    "QF-21",
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "WM"
+  },
+  {
+   "no": 19,
+   "phase": "Coating",
+   "activity": "Check overcoating interval of CEILCOTE® 662 FLAKELINE ambient conditions and if satisfactory, mix Parts A and B of CEILCOTE® 662 FLAKELINE as per manufacturer’s data sheet instructions.\nRECORD PRODUCT BATCH NUMBERS AND AMBIENT CONDITIONS ON FORM QF.20b",
+   "criteria": "Ambient conditions checked and found to be satisfactory as per CEILCOTE® 662 FLAKELINE Data Sheet.\nAmbient conditions and product batch numbers recorded on Form QF.20b",
+   "reference": "AS 3894.10\nCEILCOTE® 662 FLAKELINE Data Sheets",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & 8.27 NOV [T7]",
+   "forms": [
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "W"
+  },
+  {
+   "no": 20,
+   "phase": "Coating",
+   "activity": "FINAL COAT (3RD) – CEILCOTE® 662 FLAKELINE\nApply a stripe coat of CEILCOTE® 662 FLAKELINE to all difficult to paint areas such as edges, corners, etc. followed by a full coat to all specified surfaces. Check WFT regularly.\nWFT = 210µm- DFT= 200µm\nAS2700 COLOUR – “AS NOMINATED”\nRECORD WFT GAUGES ON FORM QF-21 AND MATERIALS USAGE / m2 ON FORM QF-20b\n(A total DFT of 650µm achieved for the completed coating system including the stripe coated areas)",
+   "criteria": "No specified surfaces uncoated, No runs sags, blisters etc. WFT Gauges and materials usage / m2 to be recorded on Form QF-21 & Form QF-20b.\nNominal DFT of 200µm of CEILCOTE® 662 FLAKELINE has been achieved including the stripe coated areas.\nAll surface preparation and protective coatings applications in accordance with SSPC-SP 13/NACE No. 6, Surface Preparation of Concrete and SSPC-PA 7 Paint Application Specification.\nA total DFT of 650µm achieved for the completed coating system including the stripe coated areas.",
+   "reference": "CEILCOTE® 662 FLAKELINE Data Sheet",
+   "spec": "WSA 201:2021 v2.3 Section 10.3.7, 10.3.10 & NOV [T7]\nWFT = 210µm\nDFT= 200µm",
+   "forms": [
+    "QF-21",
+    "QF-20b"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision",
+    "Client Representative",
+    "Asset Owner Representative"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 21,
+   "phase": "Testing",
+   "activity": "HIGH-VOLTAGE HOLIDAY TESTING:\n5 days have passed since application of final coat of newly applied coating is fully cured. Ground the earth wire by attaching to the rebar or by weighing earth cable down with heavy sandbag on bare concrete substrate. Confirm positive connection before start of test.\nHoliday Test 100% of Ceilcote® 662 Flakeline at 2,600V\nRECORD AREAS OF FAILURE/AREAS MARK-UP, AND REPAIRS ON FOORM QF-23",
+   "criteria": "100% of coated are tested. If the presence of holidays, pinholes, cracks and other discontinuities are detected, mark up and repair through reapplication of Ceilcote® 662 Flakeline\nAll holiday test results and repairs are recorded on Form QF-23",
+   "reference": "NACE SP0188:2006",
+   "spec": "WSA 201:2021 v2.3 Clause 10.3.14 & NOV [T7]\n2,600 Volts",
+   "forms": [
+    "QF-23"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision",
+    "Client Representative",
+    "Asset Owner Representative"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 22,
+   "phase": "Testing",
+   "activity": "COMPLETE ADHESION PULL-OFF TESTING:\nUsing 50mm dollies, carry out pull-off adhesion tests to fully cured CEILCOTE® 662 FLAKELINE.\nCarry out 1 X dolly test for every 50m2 of surface area treated.\nRECORD RESULTS ON FORM QF-30",
+   "criteria": "CEILCOTE® 662 FLAKELINE has satisfactorily achieved or exceeded 2MPa pull-off strength\nDamaged test sites shall be repaired in accordance with 7.14 REPAIR OF DEFECTS IN NEW COATINGS\nEXAMINE RESULTS AND RECORD FINDINGS ON FORM QF-30",
+   "reference": "AS 3894.3 METHOD C",
+   "spec": "WSA 201:2021 v2.3 Clause\nPull-Off Tensile Bond Strength = 2MPa (TBA)",
+   "forms": [
+    "QF-30"
+   ],
+   "inspectedBy": [
+    "Contractor Supervision",
+    "Client Representative",
+    "Asset Owner Representative"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 23,
+   "phase": "Close-out",
+   "activity": "All EH&S and QA checklists and forms that must be fully completed during the project work have been compiled into the Job Packs.",
+   "criteria": "All EH&S and QA checklists and forms contained in the Job Packs have been fully completed.",
+   "reference": "EH&S Documentation",
+   "spec": "Contractor EH&S Procedures",
+   "forms": [],
+   "inspectedBy": [
+    "Contractor Supervision"
+   ],
+   "type": "H"
+  },
+  {
+   "no": 24,
+   "phase": "Close-out",
+   "activity": "Completed work inspected, approved and accepted by Contractor Supervision and Client Representative",
+   "criteria": "All project work has been completed, inspected and comply with WSA 201:2021 v2.3 Selection & Application of Protective Coatings (NOVALAC EPOXY) for NEW Concrete NOV and manufacturers product data sheets and CEILCOTE® 662 FLAKELINE Application Guidelines.",
+   "reference": "Job Request Requirements",
+   "spec": "WSA 201:2021 v2.3 Selection & Application of Protective Coatings Section NOV [T7] and Job Request Requirements",
+   "forms": [],
+   "inspectedBy": [
+    "Contractor Supervision",
+    "Client Representative",
+    "Asset Owner Representative"
+   ],
+   "type": "H"
+  }
+ ]
+}

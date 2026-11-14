@@ -1,0 +1,21 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null && request.auth.token.email != null; }
+    function roleDoc() { return firestore.get(/databases/(default)/documents/roles/$(request.auth.token.email.lower())); }
+    function hasRole() { return signedIn() && firestore.exists(/databases/(default)/documents/roles/$(request.auth.token.email.lower())); }
+
+    // Photos taken on site (supervisor), read by engineer.
+    match /photos/{submissionId}/{file} {
+      allow read: if hasRole();
+      allow write: if hasRole() && roleDoc().data.role == 'supervisor'
+                   && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+
+    // Approved PDFs: Approved/Region/Job Project/Site location/Date/file.pdf
+    match /Approved/{path=**} {
+      allow read: if hasRole();
+      allow create: if hasRole() && roleDoc().data.role == 'engineer' && request.resource.contentType == 'application/pdf';
+    }
+  }
+}

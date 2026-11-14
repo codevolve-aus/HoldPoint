@@ -1,0 +1,44 @@
+rules_version = '2';
+// Access is by role. Roles live in /roles/{email}; only an admin can change them.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null && request.auth.token.email != null; }
+    function myEmail() { return request.auth.token.email.lower(); }
+    function hasRole() { return signedIn() && exists(/databases/$(database)/documents/roles/$(myEmail())); }
+    function me() { return get(/databases/$(database)/documents/roles/$(myEmail())).data; }
+    function isRole(r) { return hasRole() && me().role == r; }
+    function inMyRegion(region) { return isRole('supervisor') && region == me().region; }
+
+    match /roles/{email} {
+      allow read: if signedIn() && (myEmail() == email || isRole('admin') || isRole('engineer'));
+      allow write: if isRole('admin');
+    }
+
+    // Projects carry their ITP. Engineers set them up; supervisors see only their region.
+    match /projects/{id} {
+      allow read: if isRole('engineer') || inMyRegion(resource.data.region);
+      allow create, update, delete: if isRole('engineer');
+    }
+
+    // One document per form, per project, per day.
+    match /submissions/{id} {
+      allow read: if isRole('engineer') || inMyRegion(resource.data.region);
+      allow create: if inMyRegion(request.resource.data.region) && request.resource.data.status == 'draft';
+      allow update: if (inMyRegion(resource.data.region) && resource.data.status in ['draft', 'returned', 'not_needed']
+                         && request.resource.data.status in ['draft', 'returned', 'submitted', 'not_needed'])
+                    || (isRole('engineer') && resource.data.status == 'submitted'
+                         && request.resource.data.status in ['submitted', 'approved', 'returned']);
+    }
+
+    // Approved forms register. Written once, by an engineer, on approval.
+    match /register/{id} {
+      allow read: if isRole('engineer') || inMyRegion(resource.data.region);
+      allow create: if isRole('engineer');
+    }
+
+    match /audit/{id} {
+      allow read: if isRole('admin') || isRole('engineer');
+      allow create: if hasRole() && request.resource.data.byEmail == myEmail();
+    }
+  }
+}
