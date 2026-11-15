@@ -120,3 +120,29 @@ export interface Submission {
   pdfPath?: string;
   history: HistoryEntry[];
 }
+
+/* ---------- Company PDF form templates ---------- */
+
+/** One fillable box in an uploaded company PDF form. */
+export interface PdfBox {
+  name: string;
+  kind: 'text' | 'checkbox' | 'radio' | 'dropdown' | 'list' | 'button' | 'signature' | 'other';
+  page: number;            // 1-based
+  options?: string[];      // radio / dropdown / list choices
+  multiline?: boolean;
+}
+
+/** What fills a box: a source id (see sourcesFor) and, for a tick box, the option that ticks it. */
+export interface BoxMap { source: string; option?: string }
+
+/** pdfTemplates/{formCode}: the company's fillable PDF for a QF form and how its boxes map to the form's fields. */
+export interface PdfTemplateDoc {
+  code: string;
+  file: string;            // storage path of the uploaded PDF
+  fileName: string;
+  boxes: PdfBox[];
+  mapping: Record<string, BoxMap>; // box name -> source
+  uploadedBy: string;
+  uploadedAt: string;
+  updatedAt?: string;
+}

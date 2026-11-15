@@ -14,6 +14,10 @@ A Progressive Web App (installable on a phone, works offline) for the ITP-driven
 4. **Engineer** reviews each form: values are checked against the ITP specs, comments go on single fields,
    then **Approve** (builds a PDF, files it to `Approved/Region/Job Project/Site location/Date/`, adds a register line)
    or **Return** (supervisor fixes it, resubmits as v2).
+5. **Engineer** can upload each QF form as the company's **fillable PDF** (*Form templates*) and map its boxes to the
+   form's fields once. Approved PDFs are then that paper form, filled in and flattened, with an approval line on every page.
+   Entries the paper form has no box for, out-of-spec notes and the approval record go on pages added at the end.
+   Forms without a company PDF use the standard layout.
 
 Everything else in the clickable prototype (crew, rostering, hours, daily report, Word templates) is later phases.
 
@@ -110,27 +114,33 @@ src/
   data/templates.ts             the 5 QF form templates: fields, required, specs (ITP refs), show-if rules
   lib/checks.ts                 spec checks (min/max/allowed/minFrom, dew point margin), required fields
   lib/db.ts                     opening a day's form, header from the ITP (locked), audit log
-  lib/pdf.ts                    approved PDF (standard layout; phase 2 = company Word templates)
+  lib/pdf.ts                    approved PDF in the standard layout (forms without a company PDF)
+  lib/pdfForm.ts                company fillable PDFs: read boxes, auto-match to fields, fill + flatten, added pages
   components/FormRenderer.tsx   renders any template: edit (supervisor) or review + comments (engineer)
   pages/admin                   users and roles
   pages/supervisor              projects in my region, day view (forms + ITP), form, returned forms
   pages/engineer                review queue, review/approve/return, QA records register,
-                                ITPs and projects, ITP upload and check
+                                ITPs and projects, ITP upload and check, form templates (company PDFs + box mapping)
 firestore.rules / storage.rules role and region access enforced on the server
 ```
 
 **Data (Firestore):** `roles/{email}`, `projects/{id}` (with its current ITP and every revision), `submissions/{project_date_form}`
-(values, comments, version, status, history), `register/{id}` (approved files), `audit/{id}`.
+(values, comments, version, status, history), `register/{id}` (approved files), `pdfTemplates/{formCode}`
+(company fillable PDF and its box mapping), `audit/{id}`.
+
+**Company PDF forms:** the PDF must have fillable boxes (Adobe Acrobat → *Prepare Form*). Name boxes after the fields
+(e.g. `Time 1`, `Dry bulb 1`, `Moisture meter ID`, a tick box `Grease`) and most map themselves; the rest are picked
+on the mapping page. *Show box names on the PDF* and *Test fill with sample data* check it before real use. Photos and
+signatures go in picture boxes (Acrobat button fields) or over any box mapped to them.
 
 **Change a form:** edit `src/data/templates.ts` (labels, options, required, specs). Bump `rev` when you do.
 Moving templates into the database and editing them on an Admin page is a later phase.
 
 ## Next phases
 
-1. PDFs from the company's Word templates (exact paper layout), converted by Microsoft 365
-2. File approved PDFs to SharePoint via Microsoft Graph
-3. Admin: form templates and ITP-to-form mapping as data, with revisions and approval
-4. Crew app: clock on/off, tasks, roster; supervisor hours approval and daily report
+1. File approved PDFs to SharePoint via Microsoft Graph
+2. Admin: form templates and ITP-to-form mapping as data, with revisions and approval
+3. Crew app: clock on/off, tasks, roster; supervisor hours approval and daily report
 
 **Reading ITPs:** works on PDFs exported from Word/Excel and on .docx files. Scanned PDFs (images) can't be read;
 the engineer would type the items in. Column edges come from the table borders; if a PDF has none, they're estimated

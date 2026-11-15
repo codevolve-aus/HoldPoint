@@ -12,6 +12,13 @@ service firebase.storage {
                    && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
     }
 
+    // Company fillable PDF forms, one folder per QF form, every uploaded version kept.
+    match /pdfTemplates/{code}/{file} {
+      allow read: if hasRole() && roleDoc().data.role == 'engineer';
+      allow create: if hasRole() && roleDoc().data.role == 'engineer' && request.resource.size < 25 * 1024 * 1024
+                    && request.resource.contentType == 'application/pdf';
+    }
+
     // Original ITP files uploaded by the engineer (PDF or Word), kept per revision.
     match /itps/{projectId}/{file} {
       allow read: if hasRole();

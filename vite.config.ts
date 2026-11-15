@@ -24,7 +24,9 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // Company PDF filling (pdf-lib + fontkit, ~1 MB) is engineer-only and online-only: don't make every phone download it.
+        globIgnores: ['**/pdfForm-*.js']
       }
     })
   ],

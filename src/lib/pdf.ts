@@ -10,7 +10,7 @@ import type { FormTemplate, Project, Submission } from '../types';
  * so the output matches the paper forms exactly.
  */
 let fontB64: string | null = null;
-async function loadFont(): Promise<string | null> {
+export async function loadFont(): Promise<string | null> {
   if (fontB64) return fontB64;
   try {
     const buf = await (await fetch('/fonts/DejaVuSans.ttf')).arrayBuffer();

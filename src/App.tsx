@@ -3,6 +3,7 @@ import { useAuth } from './lib/auth';
 import { configured } from './lib/firebase';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import { FormTemplateList, FormTemplateMap } from './pages/engineer/FormTemplates';
 import AdminUsers from './pages/admin/AdminUsers';
 import Itps from './pages/engineer/Itps';
 import ItpUpload from './pages/engineer/ItpUpload';
@@ -47,6 +48,8 @@ export default function App() {
           <Route path="/engineer/records" element={<Records />} />
           <Route path="/engineer/itps" element={<Itps />} />
           <Route path="/engineer/itp/new" element={<ItpUpload />} />
+          <Route path="/engineer/templates" element={<FormTemplateList />} />
+          <Route path="/engineer/templates/:code" element={<FormTemplateMap />} />
         </>}
         {role.role === 'supervisor' && <>
           <Route path="/supervisor" element={<SupProjects />} />

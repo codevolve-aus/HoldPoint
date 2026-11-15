@@ -33,6 +33,11 @@ service cloud.firestore {
                          && request.resource.data.status in ['submitted', 'approved', 'returned']);
     }
 
+    // The company's fillable PDF for each QF form and its box mapping. Engineers upload and use them.
+    match /pdfTemplates/{code} {
+      allow read, write: if isRole('engineer');
+    }
+
     // Approved forms register. Written once, by an engineer, on approval.
     match /register/{id} {
       allow read: if isRole('engineer') || inMyRegion(resource.data.region);

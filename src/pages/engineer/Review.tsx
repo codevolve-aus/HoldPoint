@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { addDoc, collection, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes } from 'firebase/storage';
+import { getBytes, ref, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../../lib/firebase';
 import { useAuth } from '../../lib/auth';
 import { audit, STATUS_LABEL } from '../../lib/db';
 import { isoToDMY, nowText, validate } from '../../lib/checks';
 import { templateFor } from '../../data/templates';
 import FormRenderer from '../../components/FormRenderer';
-import type { Project, Submission } from '../../types';
+import type { PdfTemplateDoc, Project, Submission } from '../../types';
 
 /** Engineer reviews one form: values against spec, comments per field, approve (PDF + register) or return. */
 export default function Review() {
@@ -56,8 +56,17 @@ export default function Review() {
     try {
       const at = nowText();
       const final: Submission = { ...sub, history: [...sub.history, { at, by: me, what: `Approved v${sub.version}` }] };
-      const { buildPdf } = await import('../../lib/pdf');
-      const blob = await buildPdf(tpl, final, project, me, at);
+      // The company's own fillable PDF for this form if the engineer uploaded one, else the standard layout.
+      const t = await getDoc(doc(db, 'pdfTemplates', sub.formCode));
+      const company = t.exists() ? (t.data() as PdfTemplateDoc) : null;
+      let blob: Blob;
+      if (company) {
+        const { fillPdfTemplate } = await import('../../lib/pdfForm');
+        blob = await fillPdfTemplate(await getBytes(ref(storage, company.file)), company.mapping, { tpl, sub: final, project, approvedBy: me, approvedAt: at });
+      } else {
+        const { buildPdf } = await import('../../lib/pdf');
+        blob = await buildPdf(tpl, final, project, me, at);
+      }
       const clean = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-').trim();
       const file = `${sub.formCode}_${project.jobNo}_${sub.date}_v${sub.version}.pdf`;
       const path = `Approved/${clean(project.region)}/${clean(project.jobNo + ' ' + project.name)}/${clean(project.location)}/${sub.date}/${file}`;
@@ -65,7 +74,8 @@ export default function Review() {
       await uploadBytes(ref(storage, path), blob, { contentType: 'application/pdf' });
       await addDoc(collection(db, 'register'), {
         approvedAt: new Date().toISOString(), approvedAtText: at, approvedBy: me, region: project.region, jobNo: project.jobNo, project: project.name,
-        location: project.location, date: sub.date, form: sub.formCode, version: sub.version, submittedBy: sub.supervisorEmail, path, submissionId: sub.id
+        location: project.location, date: sub.date, form: sub.formCode, version: sub.version, submittedBy: sub.supervisorEmail, path, submissionId: sub.id,
+        pdfTemplate: company ? company.file : 'standard'
       });
       await updateDoc(doc(db, 'submissions', sub.id), { status: 'approved', decidedAt: at, decidedBy: me, pdfPath: path, history: final.history });
       await audit(user!.email!, `Approved ${sub.formCode} v${sub.version} · ${project.jobNo} ${sub.date} · filed ${path}`, sub.id);
