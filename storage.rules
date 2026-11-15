@@ -4,33 +4,21 @@ service firebase.storage {
     function signedIn() { return request.auth != null && request.auth.token.email != null; }
     function roleDoc() { return firestore.get(/databases/(default)/documents/roles/$(request.auth.token.email.lower())); }
     function hasRole() { return signedIn() && firestore.exists(/databases/(default)/documents/roles/$(request.auth.token.email.lower())); }
+    function isRole(r) { return hasRole() && roleDoc().data.role == r; }
 
-    // Photos taken on site (supervisor), read by engineer.
-    match /photos/{submissionId}/{file} {
+    // Photos taken on site by supervisors, one folder per QF record.
+    match /photos/{recordId}/{file} {
       allow read: if hasRole();
-      allow write: if hasRole() && roleDoc().data.role == 'supervisor'
-                   && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+      allow create: if isRole('supervisor') && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
     }
 
-    // Company fillable PDF forms, one folder per QF form, every uploaded version kept.
-    match /pdfTemplates/{code}/{file} {
-      allow read: if hasRole() && roleDoc().data.role == 'engineer';
-      allow create: if hasRole() && roleDoc().data.role == 'engineer' && request.resource.size < 25 * 1024 * 1024
-                    && request.resource.contentType == 'application/pdf';
-    }
-
-    // Original ITP files uploaded by the engineer (PDF or Word), kept per revision.
-    match /itps/{projectId}/{file} {
+    // The same folders as SharePoint:
+    // Projects/Year/Client/Job Project/QA/Project Documents | Completed Documents | Submitted Documents
+    match /Projects/{path=**} {
       allow read: if hasRole();
-      allow create: if hasRole() && roleDoc().data.role == 'engineer' && request.resource.size < 25 * 1024 * 1024
+      allow create: if isRole('engineer') && request.resource.size < 50 * 1024 * 1024
                     && (request.resource.contentType == 'application/pdf'
                         || request.resource.contentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    }
-
-    // Approved PDFs: Approved/Region/Job Project/Site location/Date/file.pdf
-    match /Approved/{path=**} {
-      allow read: if hasRole();
-      allow create: if hasRole() && roleDoc().data.role == 'engineer' && request.resource.contentType == 'application/pdf';
     }
   }
 }

@@ -1,5 +1,6 @@
 rules_version = '2';
 // Access is by role. Roles live in /roles/{email}; only an admin can change them.
+// Supervisors only ever see their own region.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null && request.auth.token.email != null; }
@@ -9,54 +10,69 @@ service cloud.firestore {
     function isRole(r) { return hasRole() && me().role == r; }
     // Admins must sign in with Google. Temporary test passwords are for engineers and supervisors only.
     function isAdmin() { return isRole('admin') && request.auth.token.firebase.sign_in_provider == 'google.com'; }
+    function isEngineer() { return isRole('engineer'); }
     function inMyRegion(region) { return isRole('supervisor') && region == me().region; }
+    function projectRegion(pid) { return get(/databases/$(database)/documents/projects/$(pid)).data.region; }
+    function onlyChanged(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
 
     match /roles/{email} {
-      allow read: if signedIn() && (myEmail() == email || isAdmin() || isRole('engineer'));
+      allow read: if signedIn() && (myEmail() == email || isAdmin() || isEngineer());
       allow write: if isAdmin();
     }
 
-    // Projects carry their ITP. Engineers set them up; supervisors see only their region.
-    match /projects/{id} {
-      allow read: if isRole('engineer') || isAdmin() || inMyRegion(resource.data.region);
-      allow create, update, delete: if isRole('engineer');
+    match /settings/{id} {
+      allow read: if hasRole();
+      allow write: if isAdmin();
     }
 
-    // One document per form, per project, per day.
-    match /submissions/{id} {
-      // resource == null: a supervisor checks whether today's form exists before creating it.
-      allow read: if isRole('engineer') || isAdmin() || (resource == null && isRole('supervisor')) || inMyRegion(resource.data.region);
-      allow create: if inMyRegion(request.resource.data.region) && request.resource.data.status == 'draft';
-      allow update: if (inMyRegion(resource.data.region) && resource.data.status in ['draft', 'returned', 'not_needed']
-                         && request.resource.data.status in ['draft', 'returned', 'submitted', 'not_needed'])
-                    || (isRole('engineer') && resource.data.status == 'submitted'
+    // Year › Client › Project. Engineers set projects up; supervisors see their region's.
+    match /projects/{pid} {
+      allow read: if isEngineer() || isAdmin() || inMyRegion(resource.data.region);
+      allow create, update, delete: if isEngineer();
+
+      // ITP revisions. Drafts are engineer-only until approved and released.
+      match /revisions/{rid} {
+        allow read: if isEngineer() || isAdmin()
+                    || (inMyRegion(resource.data.region) && resource.data.status in ['live', 'superseded']);
+        allow create, update: if isEngineer() && request.resource.data.region == projectRegion(pid);
+        allow delete: if isEngineer() && resource.data.status == 'draft';
+      }
+
+      // Sign / Date on each ITP line, and the sign-on table. Signed on the supervisor's tablet or the engineer's laptop.
+      match /signoffs/{sid} {
+        allow read: if isEngineer() || isAdmin() || inMyRegion(resource.data.region);
+        allow create, update: if (isEngineer() || inMyRegion(request.resource.data.region))
+                              && request.resource.data.region == projectRegion(pid);
+      }
+    }
+
+    // QF records: one copy of a QF form per ITP line.
+    match /records/{id} {
+      allow read: if isEngineer() || isAdmin() || inMyRegion(resource.data.region);
+      allow create: if inMyRegion(request.resource.data.region) && request.resource.data.status == 'draft'
+                    && request.resource.data.region == projectRegion(request.resource.data.projectId);
+      allow update: if (inMyRegion(resource.data.region) && resource.data.status in ['draft', 'returned']
+                         && request.resource.data.status in ['draft', 'returned', 'submitted']
+                         && request.resource.data.region == resource.data.region)
+                    || (isEngineer() && resource.data.status == 'submitted'
                          && request.resource.data.status in ['submitted', 'approved', 'returned'])
-                    // Admin rollback: one stage back, never touching the entries, region or day.
-                    || (isAdmin() && request.resource.data.values == resource.data.values
-                         && request.resource.data.region == resource.data.region
-                         && request.resource.data.date == resource.data.date
-                         && ((resource.data.status == 'approved' && request.resource.data.status in ['submitted', 'returned'])
-                             || (resource.data.status == 'submitted' && request.resource.data.status == 'returned')
-                             || (resource.data.status == 'returned' && request.resource.data.status == 'submitted')
-                             || (resource.data.status == 'not_needed' && request.resource.data.status == 'draft')));
+                    // Filing an approved form in a client pack changes nothing else.
+                    || (isEngineer() && resource.data.status == 'approved' && request.resource.data.status == 'approved'
+                         && onlyChanged(['packId', 'packName', 'history']))
+                    // Admin rollback of an approval, entries untouched.
+                    || (isAdmin() && resource.data.status == 'approved' && request.resource.data.status == 'submitted'
+                         && request.resource.data.values == resource.data.values);
+      allow delete: if inMyRegion(resource.data.region) && resource.data.status == 'draft';
     }
 
-    // The company's fillable PDF for each QF form and its box mapping. Engineers upload and use them.
-    match /pdfTemplates/{code} {
-      allow read, write: if isRole('engineer');
-    }
-
-    // Approved forms register. Written once, by an engineer, on approval.
-    // An admin rollback only marks a line superseded; the line and its PDF stay.
-    match /register/{id} {
-      allow read: if isRole('engineer') || isAdmin() || inMyRegion(resource.data.region);
-      allow create: if isRole('engineer');
-      allow update: if isAdmin() && !('supersededAt' in resource.data)
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['supersededAt', 'supersededBy', 'supersededReason']);
+    // Client packs (Submitted Documents).
+    match /packs/{id} {
+      allow read: if isEngineer() || isAdmin() || inMyRegion(resource.data.region);
+      allow create: if isEngineer();
     }
 
     match /audit/{id} {
-      allow read: if isAdmin() || isRole('engineer');
+      allow read: if isAdmin() || isEngineer();
       allow create: if hasRole() && request.resource.data.byEmail == myEmail();
     }
   }

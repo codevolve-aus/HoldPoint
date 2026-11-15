@@ -1,20 +1,23 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { configured } from './lib/firebase';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import AdminForms from './pages/admin/AdminForms';
-import { FormTemplateList, FormTemplateMap } from './pages/engineer/FormTemplates';
-import AdminUsers from './pages/admin/AdminUsers';
-import Itps from './pages/engineer/Itps';
-import ItpUpload from './pages/engineer/ItpUpload';
-import SupProjects from './pages/supervisor/SupProjects';
-import SupDay from './pages/supervisor/SupDay';
-import SupForm from './pages/supervisor/SupForm';
-import SupReturned from './pages/supervisor/SupReturned';
-import Queue from './pages/engineer/Queue';
-import Review from './pages/engineer/Review';
-import Records from './pages/engineer/Records';
+import Home from './pages/Home';
+import ProjectDocs from './pages/ProjectDocs';
+import Completed from './pages/Completed';
+import Submitted from './pages/Submitted';
+import ItpView from './pages/ItpView';
+import RecordView from './pages/RecordView';
+import Templates from './pages/Templates';
+import AdminUsers from './pages/AdminUsers';
+import AdminCompany from './pages/AdminCompany';
+
+// The ITP reader (pdf.js, mammoth) is engineer-only: load it when needed.
+const ItpUpload = lazy(() => import('./pages/ItpUpload'));
+
+function ProjectRedirect() { const { pid } = useParams(); return <Navigate to={`/p/${pid}/docs`} replace />; }
 
 export default function App() {
   const { user, role, loading, error, signOutNow } = useAuth();
@@ -36,31 +39,31 @@ export default function App() {
     </div></div>
   );
 
-  const home = role.role === 'admin' ? '/admin' : role.role === 'engineer' ? '/engineer' : '/supervisor';
+  const eng = role.role === 'engineer';
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        {role.role === 'admin' && <>
-          <Route path="/admin" element={<AdminUsers />} />
-          <Route path="/admin/forms" element={<AdminForms />} />
-        </>}
-        {role.role === 'engineer' && <>
-          <Route path="/engineer" element={<Queue />} />
-          <Route path="/engineer/review/:id" element={<Review />} />
-          <Route path="/engineer/records" element={<Records />} />
-          <Route path="/engineer/itps" element={<Itps />} />
-          <Route path="/engineer/itp/new" element={<ItpUpload />} />
-          <Route path="/engineer/templates" element={<FormTemplateList />} />
-          <Route path="/engineer/templates/:code" element={<FormTemplateMap />} />
-        </>}
-        {role.role === 'supervisor' && <>
-          <Route path="/supervisor" element={<SupProjects />} />
-          <Route path="/supervisor/returned" element={<SupReturned />} />
-          <Route path="/supervisor/p/:pid" element={<SupDay />} />
-          <Route path="/supervisor/p/:pid/:date/:code" element={<SupForm />} />
-        </>}
-        <Route path="*" element={<Navigate to={home} replace />} />
-      </Route>
-    </Routes>
+    <Suspense fallback={<div className="center"><span className="sub">Loading…</span></div>}>
+      <Routes>
+        <Route element={<Layout />}>
+          {role.role === 'admin' ? <>
+            <Route path="/admin" element={<AdminUsers />} />
+            <Route path="/admin/company" element={<AdminCompany />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </> : <>
+            <Route path="/" element={<Home />} />
+            {eng && <Route path="/new" element={<ItpUpload />} />}
+            {eng && <Route path="/p/:pid/upload" element={<ItpUpload />} />}
+            <Route path="/p/:pid" element={<ProjectRedirect />} />
+            <Route path="/p/:pid/docs" element={<ProjectDocs />} />
+            <Route path="/p/:pid/itp/:rid" element={<ItpView />} />
+            <Route path="/p/:pid/completed" element={<Completed />} />
+            <Route path="/p/:pid/submitted" element={<Submitted />} />
+            <Route path="/r/:rid" element={<RecordView />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/templates/:code" element={<Templates />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>}
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }

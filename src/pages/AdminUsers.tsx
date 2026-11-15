@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { getApps, initializeApp } from 'firebase/app';
 import { createUserWithEmailAndPassword, getAuth, signOut } from 'firebase/auth';
-import { config, db } from '../../lib/firebase';
-import { useAuth } from '../../lib/auth';
-import { audit } from '../../lib/db';
-import type { Role, RoleDoc } from '../../types';
+import { config, db } from '../lib/firebase';
+import { useAuth } from '../lib/auth';
+import { audit } from '../lib/db';
+import type { Role, RoleDoc } from '../types';
 
 /**
  * Creates a temporary test password account for an engineer or supervisor.

@@ -25,8 +25,8 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        // Company PDF filling (pdf-lib + fontkit, ~1 MB) is engineer-only and online-only: don't make every phone download it.
-        globIgnores: ['**/pdfForm-*.js']
+        // The ITP reader (pdf.js worker, mammoth) and the client pack builder are engineer-only and online-only.
+        globIgnores: ['**/pdf.worker*', '**/mammoth*', '**/ItpUpload-*', '**/itpRead-*', '**/pack-*']
       }
     })
   ],

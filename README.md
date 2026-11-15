@@ -1,25 +1,39 @@
 # HoldPoint by CodeVolve
 
-MVP: the supervisor ↔ engineer quality workflow.
+The QA workflow between site supervisors (tablets) and the project engineer (laptop), organised the way the
+project already lives in SharePoint.
 
-A Progressive Web App (installable on a phone, works offline) for the ITP-driven QA workflow:
+**Folders:** Year › Client › Project › QA › **Project Documents** · **Completed Documents** · **Submitted Documents**,
+plus a **QF Form Templates** library. Laptops keep the folder tree on the left; tablets open it from a **Folders** button.
 
-1. **Admin** gives Google accounts a role: admin, engineer or supervisor (supervisors get one region).
-2. **Engineer** uploads each project's own ITP (PDF or Word). HoldPoint reads the header, every item and the QF forms
-   in the reference column; the engineer checks it side by side with the original, fixes anything, resolves forms
-   that don't have a template yet, and publishes it to the project, site location and region.
-   A new revision replaces it for new days only; forms already filled stay on the revision they were made under.
-3. **Supervisor** (only sees their region) opens the project, reads the locked ITP, fills the QF forms the ITP asks for
-   (QF-45c, QF-20b, QF-21, QF-23, QF-30) with photos and signatures, and submits them at the end of the day.
-4. **Engineer** reviews each form: values are checked against the ITP specs, comments go on single fields,
-   then **Approve** (builds a PDF, files it to `Approved/Region/Job Project/Site location/Date/`, adds a register line)
-   or **Return** (supervisor fixes it, resubmits as v2).
-5. **Engineer** can upload each QF form as the company's **fillable PDF** (*Form templates*) and map its boxes to the
-   form's fields once. Approved PDFs are then that paper form, filled in and flattened, with an approval line on every page.
-   Entries the paper form has no box for, out-of-spec notes and the approval record go on pages added at the end.
-   Forms without a company PDF use the standard layout.
+1. **Admin** gives Google accounts a role (admin, engineer, supervisor with one region) and sets the company name and logo.
+2. **Engineer** starts a project by uploading its ITP (PDF or Word). HoldPoint reads the header, every line and the QF
+   forms in the reference column; the engineer checks it side by side with the original and saves it to
+   **Project Documents as a draft**. Supervisors can't see a draft.
+3. **Engineer** opens the draft (changes from the live revision are marked) and clicks **Approve & release**. It goes live
+   for that region's supervisors; the previous revision is superseded. Updating the ITP is ongoing: QF records and
+   sign-offs stay on their lines across revisions.
+4. **Supervisor** opens the live ITP. It looks exactly like the ITP PDF: landscape pages, the document header block on
+   every page, the 9 columns (No. · Activity / Operation · Specification · Reference Document · Acceptance Criteria ·
+   Inspection By · Sign · Date · Inspection Type), one Sign / Date row per inspecting party, comments and notes, and the
+   ITP sign-on page. **Sign** opens a signature pad for the person named on that row (supervisor, client representative,
+   asset owner); **Date** opens the tablet's date picker. Pages fit the screen width, with zoom.
+5. Each **Form QF-xx** link in the Reference Document column lists that line's records and starts a **new copy for that
+   line**. The same form on different lines gets separate copies (QF-20b on line 5 and line 8 are separate records),
+   numbered per project: `25-0418-QF20b-004`.
+6. The QF form is **the paper form on screen**: QF-20b, QF-45c, QF-21, QF-23 and QF-30 are built to look exactly like the
+   company PDFs, with inputs on every blank, tick boxes, photos in the sketch boxes and signatures on the signature
+   lines. It saves as you type and works offline. Out-of-spec readings are flagged (humidity over 85 %, surface less than
+   3 °C above dew point, WFT under spec, holidays not repaired, failed adhesion…).
+7. **Supervisor** submits; **engineer** returns it with a note (the supervisor fixes it and resubmits as v2) or
+   **approves**. Approving turns the paper form on screen into a PDF and files it in **Completed Documents**.
+8. **Engineer** ticks approved forms in Completed Documents and clicks **Send to client**: HoldPoint builds one PDF pack
+   with a cover sheet, files it in **Submitted Documents** and downloads it for the engineer to email.
 
-Everything else in the clickable prototype (crew, rostering, hours, daily report, Word templates) is later phases.
+Files in Storage use the same folders: `Projects/2026/Client/25-0418 Project/QA/Completed Documents/25-0418-QF20b-004.pdf`.
+The ITP can also be downloaded as a PDF with its signatures and dates.
+
+Crew, rostering, hours, the daily report and SharePoint sync are later phases.
 
 ---
 
@@ -79,18 +93,23 @@ npm run dev
 
 Open http://localhost:5173 → **Sign in with Google**.
 
-**Demo script (needs three Google accounts, or use your own for admin and two others):**
+**Demo script (three Google accounts, or test passwords for the engineer and supervisor):**
 
-1. As **admin** → Users → add an **engineer** (All regions) and a **supervisor** (region Sydney).
-2. Sign out, sign in as the **engineer** → *ITPs and projects* → **New ITP** → choose the project's ITP file →
-   check the job details, items and forms against the original on the left → tick the check box → **Publish**.
-3. Sign in as the **supervisor** (ideally on a phone, see step 6) → *My projects* → Pit 1 internals →
-   fill QF-21 (photos, readings, signature), mark forms you don't need as *Not needed*, **Submit**.
-4. Sign in as the **engineer** → *Review queue* → open the form → comment on a field → **Return**.
-5. Supervisor → *Returned forms* → fix → submit again (v2).
-6. Engineer → **Approve and file** → *QA records* → **Open PDF**, **Download register (CSV)**.
+1. As **admin** → Users → add an **engineer** and a **supervisor** (region Sydney). Company → name and logo.
+2. Sign in as the **engineer** on a laptop → Folders → **+ New project** → choose the ITP file → check it against the
+   original → tick the box → **Save as a draft**. The draft opens: **Approve & release to Sydney supervisors**.
+3. Sign in as the **supervisor** on a tablet → **Folders** → 2026 › Client › Project › QA › Project Documents →
+   **Open ITP form** → **Sign** a line (draw, name, date) → tap **Form QF-45c** on a line → **+ New QF-45c for line 8** →
+   fill the paper form, add a photo, sign → **Submit to engineer**.
+4. **Engineer** → Home → open it → **Return to supervisor** with a note → supervisor fixes it (Home → Returned to you) and
+   resubmits as v2 → engineer **Approve & file PDF**.
+5. **Engineer** → Completed Documents → tick it → **Send to client** → the pack downloads and appears in Submitted Documents.
+6. Upload a new ITP revision from Project Documents: it's a draft until approved; the supervisor keeps the live one.
 
-## 6. Try it on a phone
+**Projects from the previous version** (day-based forms): open the project's Project Documents as the engineer and click
+**Bring it in** to make its ITP the live revision. Day-based forms from the previous version aren't carried over.
+
+## 6. Try it on a tablet
 
 The camera and "Add to Home Screen" need HTTPS, so deploy to Firebase Hosting:
 
@@ -98,10 +117,10 @@ The camera and "Add to Home Screen" need HTTPS, so deploy to Firebase Hosting:
 npm run deploy        # builds and deploys hosting + rules
 ```
 
-Open `https://YOUR-PROJECT-ID.web.app` on the phone → sign in → browser menu → **Add to Home Screen**.
+Open `https://YOUR-PROJECT-ID.web.app` on the tablet → sign in → browser menu → **Add to Home Screen**.
 Add that domain in Firebase console → Authentication → Settings → **Authorized domains** if it isn't listed.
 
-Offline: form entries are kept on the phone and sync when there's signal. Photos need signal to upload.
+Offline: form entries and sign-offs are kept on the tablet and sync when there's signal. Photos, approvals and packs need signal.
 
 ---
 
@@ -109,37 +128,36 @@ Offline: form entries are kept on the phone and sync when there's signal. Photos
 
 ```
 src/
-  lib/itpParse.ts               reads ITP header, items and QF form references (PDF text + table borders, or Word rows)
-  lib/itpRead.ts                loads the uploaded PDF (pdf.js) or Word file (mammoth) in the browser
-  data/templates.ts             the 5 QF form templates: fields, required, specs (ITP refs), show-if rules
-  lib/checks.ts                 spec checks (min/max/allowed/minFrom, dew point margin), required fields
-  lib/db.ts                     opening a day's form, header from the ITP (locked), audit log
-  lib/pdf.ts                    approved PDF in the standard layout (forms without a company PDF)
-  lib/pdfForm.ts                company fillable PDFs: read boxes, auto-match to fields, fill + flatten, added pages
-  components/FormRenderer.tsx   renders any template: edit (supervisor) or review + comments (engineer)
-  pages/admin                   users and roles
-  pages/supervisor              projects in my region, day view (forms + ITP), form, returned forms
-  pages/engineer                review queue, review/approve/return, QA records register,
-                                ITPs and projects, ITP upload and check, form templates (company PDFs + box mapping)
-firestore.rules / storage.rules role and region access enforced on the server
+  components/Layout.tsx, FolderTree.tsx   app shell: folder tree (laptop) / Folders drawer (tablet)
+  components/ItpPaper.tsx                 the ITP as the PDF lays it out: measured pagination, Sign/Date per party, form links
+  components/PaperViewer.tsx              fit-to-width viewer with zoom for the ITP and QF forms
+  components/SignatureModal.tsx           on-screen signature: name, date, finger/stylus/mouse
+  forms/kit.tsx                           blanks, cells, tick boxes, photo boxes, ruled lines, signature lines for paper forms
+  forms/QF20b.tsx … QF30.tsx              the five QF forms, built to match the company PDFs page for page
+  forms/registry.ts                       which forms HoldPoint fills, their pages and out-of-spec checks
+  lib/itpParse.ts, itpRead.ts             reading an ITP PDF (pdf.js, table borders) or Word file (mammoth)
+  lib/db.ts                               live data hooks, folder paths, record numbering, audit log
+  lib/paperPdf.ts                         paper pages on screen → PDF (approved forms, ITP download)
+  lib/pack.ts                             client pack: cover sheet + approved PDFs
+  pages/                                  Home, ProjectDocs, ItpUpload, ItpView, RecordView, Completed, Submitted,
+                                          Templates, AdminUsers, AdminCompany
+firestore.rules / storage.rules           role and region access enforced on the server
 ```
 
-**Data (Firestore):** `roles/{email}`, `projects/{id}` (with its current ITP and every revision), `submissions/{project_date_form}`
-(values, comments, version, status, history), `register/{id}` (approved files), `pdfTemplates/{formCode}`
-(company fillable PDF and its box mapping), `audit/{id}`.
+**Data (Firestore):** `roles/{email}`, `settings/company`, `projects/{id}` (year, client, job, region…),
+`projects/{id}/revisions/{rev}` (ITP revisions: draft, live, superseded), `projects/{id}/signoffs/{line_party}` and
+`…/signoffs/signon`, `records/{id}` (one QF form copy on one ITP line: values, status, version, history, PDF path),
+`packs/{id}` (what was sent to the client), `audit/{id}`.
 
-**Company PDF forms:** the PDF must have fillable boxes (Adobe Acrobat → *Prepare Form*). Name boxes after the fields
-(e.g. `Time 1`, `Dry bulb 1`, `Moisture meter ID`, a tick box `Grease`) and most map themselves; the rest are picked
-on the mapping page. *Show box names on the PDF* and *Test fill with sample data* check it before real use. Photos and
-signatures go in picture boxes (Acrobat button fields) or over any box mapped to them.
+**Storage CORS** (step 3) is needed for photos to appear in approved PDFs and for client packs to be built.
 
-**Change a form:** edit `src/data/templates.ts` (labels, options, required, specs). Bump `rev` when you do.
-Moving templates into the database and editing them on an Admin page is a later phase.
+**Change a form:** each QF form is a React component in `src/forms/`. Add or revise one there and list it in
+`src/forms/registry.ts`. Forms an ITP refers to that aren't listed are shown as paper only.
 
 ## Next phases
 
-1. File approved PDFs to SharePoint via Microsoft Graph
-2. Admin: form templates and ITP-to-form mapping as data, with revisions and approval
+1. Sync the folders to SharePoint via Microsoft Graph (same Year › Client › Project › QA layout)
+2. Email client packs from HoldPoint (a Firebase function and an email service)
 3. Crew app: clock on/off, tasks, roster; supervisor hours approval and daily report
 
 **Reading ITPs:** works on PDFs exported from Word/Excel and on .docx files. Scanned PDFs (images) can't be read;
