@@ -1,6 +1,6 @@
 import {
   PDFButton, PDFCheckBox, PDFDocument, PDFDropdown, PDFOptionList, PDFRadioGroup, PDFSignature, PDFTextField,
-  rgb, type PDFField, type PDFFont, type PDFImage, type PDFPage
+  StandardFonts, rgb, type PDFField, type PDFFont, type PDFImage, type PDFPage
 } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { jsPDF } from 'jspdf';
@@ -8,6 +8,7 @@ import { loadFont } from './pdf';
 import { photoDataURL } from './photos';
 import { isoToDMY, todayISO, validate, visible } from './checks';
 import type { BoxMap, Field, FormTemplate, PdfBox, Project, Submission } from '../types';
+import { PDF_PRESETS } from '../data/pdfPresets';
 
 /*
  * Company PDF forms: the engineer uploads each QF form as a fillable PDF and maps its boxes to the
@@ -19,7 +20,7 @@ import type { BoxMap, Field, FormTemplate, PdfBox, Project, Submission } from '.
 /* ---------- Sources: everything a box can be filled with ---------- */
 
 export interface Source {
-  id: string;              // h:<header> | x:<approval> | f:<key>[#name|#at] | r:<section>:<row>:<key>[#name|#at]
+  id: string;              // h:<header> | x:<approval> | f:<key>[#name|#at] | r:<section>:<row>:<key>[#name|#at] | r:<section>:<row>:@<rule>
   label: string;
   group: string;
   kind: 'text' | 'image';
@@ -50,6 +51,8 @@ export function sourcesFor(tpl: FormTemplate): Source[] {
       for (let i = 0; i < sec.repeat.max; i++) {
         const group = `${sec.title} · ${sec.repeat.itemLabel} ${i + 1}`;
         for (const f of sec.fields) out.push(...fieldSources(f, `r:${sec.id}:${i}:${f.key}`, f.label, group));
+        // Worked out from two readings, e.g. surface temp minus dew point.
+        (sec.rowRules || []).forEach((r, k) => out.push({ id: `r:${sec.id}:${i}:@${k}`, label: `${r.label} (difference, worked out)`, group, kind: 'text' }));
       }
     } else {
       for (const f of sec.fields) out.push(...fieldSources(f, `f:${f.key}`, f.label, sec.title));
@@ -134,8 +137,10 @@ export function autoMap(boxes: PdfBox[], tpl: FormTemplate): Record<string, BoxM
   }
   const images = new Set(sourcesFor(tpl).filter((x) => x.kind === 'image').map((x) => x.id));
   const out: Record<string, BoxMap> = {};
+  const preset = PDF_PRESETS[tpl.code]?.() || {};
   for (const b of boxes) {
     if (b.kind === 'other') continue;
+    if (preset[b.name]) { out[b.name] = preset[b.name]; continue; }
     const hits = (idx.get(norm(b.name)) || []).filter((m) =>
       b.kind === 'checkbox' ? true
         : b.kind === 'button' || b.kind === 'signature' ? images.has(m.source) && !m.option // picture boxes take photos and signatures
@@ -155,7 +160,7 @@ export interface FillData {
   approvedAt: string;
 }
 
-interface Resolved { value: any; field?: Field; hidden: boolean }
+interface Resolved { value: any; field?: Field; hidden: boolean; derived?: boolean }
 
 function fieldIn(tpl: FormTemplate, secId: string | null, key: string): Field | undefined {
   for (const s of tpl.sections) if ((secId === null && !s.repeat) || s.id === secId) { const f = s.fields.find((x) => x.key === key); if (f) return f; }
@@ -181,19 +186,84 @@ function resolve(id: string, d: FillData): Resolved {
   if (base.startsWith('r:')) {
     const [, sec, i, key] = base.split(':'); const row = (d.sub.values[sec] || [])[Number(i)];
     if (!row) return { value: undefined, hidden: false };
+    if (key.startsWith('@')) {
+      const rule = d.tpl.sections.find((x) => x.id === sec)?.rowRules?.[Number(key.slice(1))];
+      const a = Number(row[rule?.a ?? '']), b = Number(row[rule?.b ?? '']);
+      const ok = rule && row[rule.a] !== '' && row[rule.b] !== '' && row[rule.a] != null && row[rule.b] != null && isFinite(a) && isFinite(b);
+      return { value: ok ? `${Math.round((a - b) * 10) / 10} °C` : undefined, hidden: false, derived: true };
+    }
     const f = fieldIn(d.tpl, sec, key);
     return { value: pick(row[key]), field: part ? undefined : f, hidden: !!f && !visible(f, row) };
   }
   return { value: undefined, hidden: false };
 }
 
-function asText(v: any, f?: Field): string {
+function asText(v: any, f?: Field, format?: BoxMap['format']): string {
   if (v === undefined || v === null || v === '') return '';
   if (Array.isArray(v)) return v.join(', ');
   if (typeof v === 'object') return '';
   if (f?.type === 'date') return isoToDMY(String(v));
+  if (format === 'code') return String(v).trim().split(/\s+/)[0];
+  if (format === 'plain') return String(v).replace(/\s*°C$/, '');
   if (f?.type === 'number' && f.unit && !f.unit.includes(' ')) return `${v} ${f.unit}`;
   return String(v);
+}
+
+const blank = (v: any) => v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length);
+
+/** Whether a mapping's "only when" condition holds. */
+function whenHolds(m: BoxMap, d: FillData): boolean {
+  if (!m.when) return true;
+  const r = resolve(m.when.source, d);
+  return !r.hidden && m.when.in.includes(String(r.value ?? ''));
+}
+
+/** Font size from a box's default appearance, e.g. '/Helv 10 Tf' → 10 (0 means auto). */
+const daSize = (f: PDFTextField) => { const m = /([\d.]+)\s+Tf/.exec(f.acroField.getDefaultAppearance() || ''); return m ? Number(m[1]) : 0; };
+
+/** Rough line wrap at a width, to tell whether text fits a box of several lines. */
+function wrapCount(t: string, font: PDFFont, size: number, width: number): number {
+  let lines = 0;
+  for (const para of t.split('\n')) {
+    let cur = ''; lines++;
+    for (const w of para.split(/\s+/)) {
+      const next = cur ? `${cur} ${w}` : w;
+      if (font.widthOfTextAtSize(next, size) > width && cur) { lines++; cur = w; } else cur = next;
+    }
+  }
+  return lines;
+}
+
+/**
+ * Picks a font size so the text fits the box, down to 5 pt. Returns false when it still doesn't fit:
+ * the box shows what it can and the full value goes on the added pages.
+ */
+function fitText(field: PDFTextField, t: string, font: PDFFont, rect: { width: number; height: number }): boolean {
+  if (!t) return true;
+  const w = rect.width - 4, h = rect.height - 2;
+  const start = daSize(field) || Math.min(11, Math.max(6, h * 0.7));
+  const MIN = 5;
+  if (field.isMultiline()) {
+    for (let size = start; size >= MIN; size -= 0.5) if (wrapCount(t, font, size, w) * size * 1.2 <= h + 0.5) { if (size !== start) field.setFontSize(size); return true; }
+    field.setFontSize(MIN); return false;
+  }
+  const at = font.widthOfTextAtSize(t, start);
+  if (at <= w) return true;
+  const size = Math.max(MIN, Math.floor((start * w / at) * 2) / 2);
+  field.setFontSize(Math.min(size, start));
+  return font.widthOfTextAtSize(t, size) <= w;
+}
+
+/** Tracks which values (and which options of a value) actually appear in a box. */
+class Shown {
+  private m = new Map<string, Set<string>>();
+  mark(id: string, part = '*') { const s = this.m.get(id) || new Set<string>(); s.add(part); this.m.set(id, s); }
+  has(id: string, value: any): boolean {
+    const s = this.m.get(id); if (!s) return false;
+    if (s.has('*')) return true;
+    if (Array.isArray(value)) return value.every((v) => s.has(String(v)));
+    return s.has(String(value));
+  }
 }
 
 const ticked = (v: any, option?: string) => {
@@ -247,33 +317,40 @@ export async function fillPdfTemplate(templateBytes: ArrayBuffer, mapping: Recor
   const form = doc.getForm();
   if (form.hasXFA()) form.deleteXFA();
   const pages = doc.getPages();
-  const used = new Set<string>();
+  const shown = new Shown();
+  const measure = font || await doc.embedFont(StandardFonts.Helvetica);
 
   for (const field of form.getFields()) {
     const m = mapping[field.getName()];
     if (!m?.source) continue;
-    used.add(m.source);
     const { value, field: f, hidden } = resolve(m.source, d);
+    const on = !hidden && whenHolds(m, d);
+    // A box shown under a one-value condition also tells the reader that value (e.g. which coat type).
+    const alsoShows = () => { if (m.when && m.when.in.length === 1) shown.mark(m.when.source, m.when.in[0]); };
     const isImage = (f?.type === 'photo' || f?.type === 'signature') && !m.source.includes('#');
     try {
       if (isImage) {
-        const im = hidden ? null : await imageFor(doc, value);
-        if (im) for (const w of widgetPlaces(doc, field)) drawFitted(pages[w.pageIndex], im.img, w.rect);
+        const im = on ? await imageFor(doc, value) : null;
+        if (im) { for (const w of widgetPlaces(doc, field)) drawFitted(pages[w.pageIndex], im.img, w.rect); shown.mark(m.source); alsoShows(); }
         form.removeField(field);
       } else if (field instanceof PDFTextField) {
-        let t = hidden ? '' : asText(value, f);
-        const max = field.getMaxLength(); if (max !== undefined && t.length > max) t = t.slice(0, max);
+        let t = on ? asText(value, f, m.format) : '';
+        const max = field.getMaxLength(); const cut = max !== undefined && t.length > max; if (cut) t = t.slice(0, max);
         field.setText(t);
+        const rect = widgetPlaces(doc, field)[0]?.rect;
+        const fits = !cut && (!rect || fitText(field, t, measure, rect));
+        if (t && fits) { shown.mark(m.source); alsoShows(); }
       } else if (field instanceof PDFCheckBox) {
-        if (!hidden && ticked(value, m.option)) field.check(); else field.uncheck();
-      } else if (field instanceof PDFRadioGroup) {
-        const o = hidden ? undefined : matchOption(value, field.getOptions());
-        if (o) field.select(o); else field.clear();
-      } else if (field instanceof PDFDropdown || field instanceof PDFOptionList) {
-        const o = hidden ? undefined : matchOption(value, field.getOptions());
-        if (o) field.select(o); else field.clear();
+        if (on && ticked(value, m.option)) {
+          field.check();
+          if (m.option) shown.mark(m.source, m.option); // a tick box only shows its own option
+          alsoShows();
+        } else field.uncheck();
+      } else if (field instanceof PDFRadioGroup || field instanceof PDFDropdown || field instanceof PDFOptionList) {
+        const o = on ? matchOption(value, field.getOptions()) : undefined;
+        if (o) { field.select(o); shown.mark(m.source); alsoShows(); } else field.clear();
       }
-    } catch { /* a box that can't take this value stays blank; the value is listed on the added pages */ used.delete(m.source); }
+    } catch { /* a box that can't take this value stays blank; the value is listed on the added pages */ }
   }
 
   // Buttons and signature boxes nobody filled can't be flattened reliably: drop them (the printed box stays).
@@ -289,7 +366,7 @@ export async function fillPdfTemplate(templateBytes: ArrayBuffer, mapping: Recor
   });
 
   if (opts.appendix !== false) {
-    const extra = await buildAppendix(d, used, b64);
+    const extra = await buildAppendix(d, shown, b64);
     if (extra) {
       const ad = await PDFDocument.load(extra);
       const copied = await doc.copyPages(ad, ad.getPageIndices());
@@ -301,14 +378,14 @@ export async function fillPdfTemplate(templateBytes: ArrayBuffer, mapping: Recor
 
 /* ---------- Added pages: values with no box, photos, out-of-spec notes, approval record ---------- */
 
-async function buildAppendix(d: FillData, used: Set<string>, fontB64: string | null): Promise<ArrayBuffer | null> {
+async function buildAppendix(d: FillData, shown: Shown, fontB64: string | null): Promise<ArrayBuffer | null> {
   const { tpl, sub } = d;
   const lines: { group: string; label: string; value: string }[] = [];
   const photos: { caption: string; v: any }[] = [];
   for (const s of sourcesFor(tpl)) {
-    if (used.has(s.id) || s.id.startsWith('h:') || s.id.startsWith('x:')) continue;
+    if (s.id.startsWith('x:')) continue; // the approval record below covers these
     const r = resolve(s.id, d);
-    if (r.hidden) continue;
+    if (r.hidden || r.derived || blank(r.value) || shown.has(s.id, r.value)) continue;
     if (s.kind === 'image') { if (r.value) photos.push({ caption: `${s.group} · ${s.label}`, v: r.value }); continue; }
     const t = asText(r.value, r.field);
     if (t) lines.push({ group: s.group, label: s.label, value: t });
@@ -335,11 +412,11 @@ async function buildAppendix(d: FillData, used: Set<string>, fontB64: string | n
 
   top();
   pdf.setFont(VAL, 'normal'); pdf.setFontSize(8);
-  pdf.text(pdf.splitTextToSize('Added by HoldPoint to the company form: entries the paper form has no box for, out-of-spec notes and the approval record.', CW), M, y); y += 9;
+  pdf.text(pdf.splitTextToSize('Added by HoldPoint to the company form: entries the paper form has no box for (or that did not fit their box), out-of-spec notes and the approval record.', CW), M, y); y += 9;
 
   if (spec.length) { heading('Out of spec'); spec.forEach((i) => text(`${i.label}: ${i.message}`, [185, 28, 28])); y += 2; }
   if (lines.length) {
-    heading('Entries with no box on the form');
+    heading('Entries not shown in full on the form');
     let g = '';
     for (const l of lines) {
       if (l.group !== g) { g = l.group; need(6); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8.5); pdf.text(g, M, y); y += 4.5; }
@@ -354,9 +431,17 @@ async function buildAppendix(d: FillData, used: Set<string>, fontB64: string | n
       const data = typeof p.v === 'string' && p.v.startsWith('photos/') ? await photoDataURL(p.v) : p.v?.image;
       if (col === 0) need(62);
       const x = M + col * (CW / 2 + 1);
-      if (data) { try { pdf.addImage(data, String(data).startsWith('data:image/png') ? 'PNG' : 'JPEG', x, y, CW / 2 - 2, 52); } catch { pdf.rect(x, y, CW / 2 - 2, 52); } }
+      if (data) {
+        try {
+          // Keep the picture's proportions inside its 52 mm slot (signatures are wide and short).
+          const fmt = String(data).startsWith('data:image/png') ? 'PNG' : 'JPEG';
+          const ip = pdf.getImageProperties(data); const bw = CW / 2 - 2, bh = 52;
+          const k = Math.min(bw / ip.width, bh / ip.height); const iw = ip.width * k, ih = ip.height * k;
+          pdf.addImage(data, fmt, x + (bw - iw) / 2, y + (bh - ih) / 2, iw, ih);
+        } catch { pdf.rect(x, y, CW / 2 - 2, 52); }
+      }
       else pdf.rect(x, y, CW / 2 - 2, 52);
-      pdf.setFontSize(7); pdf.setFont(VAL, 'normal'); pdf.text(pdf.splitTextToSize(p.caption, CW / 2 - 2).slice(0, 2), x, y + 56);
+      pdf.setFontSize(7); pdf.setFont(VAL, 'normal'); pdf.text(pdf.splitTextToSize(p.caption + (data ? '' : ' (could not be loaded: open the form in HoldPoint)'), CW / 2 - 2).slice(0, 2), x, y + 56);
       col = (col + 1) % 2; if (col === 0) y += 62;
     }
     if (col === 1) y += 62;

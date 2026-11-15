@@ -136,8 +136,12 @@ export interface PdfBox {
   multiline?: boolean;
 }
 
-/** What fills a box: a source id (see sourcesFor) and, for a tick box, the option that ticks it. */
-export interface BoxMap { source: string; option?: string }
+/**
+ * What fills a box: a source id (see sourcesFor) and, for a tick box, the option that ticks it.
+ * `when` fills the box only if another value is one of a list (e.g. the Pre-Cleaning row only when the method is Pre-cleaning).
+ * `format`: 'code' writes the first word only ('L Low' → 'L'); 'plain' writes a number without its unit.
+ */
+export interface BoxMap { source: string; option?: string; when?: { source: string; in: string[] }; format?: 'code' | 'plain' }
 
 /** pdfTemplates/{formCode}: the company's fillable PDF for a QF form and how its boxes map to the form's fields. */
 export interface PdfTemplateDoc {

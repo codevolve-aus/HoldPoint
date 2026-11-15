@@ -11,6 +11,10 @@ import type { BoxMap, PdfTemplateDoc } from '../../types';
 
 const lib = () => import('../../lib/pdfForm');
 
+/** Firestore rejects undefined values: drop empty parts of each box's mapping before saving. */
+const clean = (m: Record<string, BoxMap>): Record<string, BoxMap> =>
+  Object.fromEntries(Object.entries(m).filter(([, v]) => v?.source).map(([k, v]) => [k, JSON.parse(JSON.stringify(v)) as BoxMap]));
+
 const openBlob = (blob: Blob, w: Window | null) => {
   const url = URL.createObjectURL(blob);
   if (w) w.location.href = url; else window.open(url, '_blank');
@@ -43,7 +47,7 @@ export function FormTemplateList() {
       const path = `pdfTemplates/${code}/${Date.now()}_${safe}`;
       await uploadBytes(ref(storage, path), file, { contentType: 'application/pdf' });
       const at = nowText();
-      const d: PdfTemplateDoc = { code, file: path, fileName: file.name, boxes, mapping, uploadedBy: role?.name || user!.email!, uploadedAt: at, updatedAt: at };
+      const d: PdfTemplateDoc = { code, file: path, fileName: file.name, boxes, mapping: clean(mapping), uploadedBy: role?.name || user!.email!, uploadedAt: at, updatedAt: at };
       await setDoc(doc(db, 'pdfTemplates', code), d);
       await audit(user!.email!, `${old ? 'Replaced' : 'Uploaded'} the company PDF for ${code}: ${file.name} (${boxes.length} boxes, ${Object.keys(mapping).length} matched automatically)`, code);
       if (warnings.length) alert(warnings.join('\n'));
@@ -126,12 +130,19 @@ export function FormTemplateMap() {
   const save = async () => {
     setBusy('save');
     try {
-      await updateDoc(doc(db, 'pdfTemplates', code!), { mapping, updatedAt: nowText() });
+      await updateDoc(doc(db, 'pdfTemplates', code!), { mapping: clean(mapping), updatedAt: nowText() });
       await audit(user!.email!, `Saved the box mapping for ${code} (${Object.keys(mapping).length} of ${d.boxes.length} boxes)`, code);
       setDirty(false); setMsg('Saved. New approvals of this form use it.');
     } catch (e: any) { setMsg(e?.message || 'Could not save'); } finally { setBusy(''); }
   };
   const bytes = async () => getBytes(ref(storage, d.file));
+  const suggest = async () => {
+    if (Object.keys(mapping).length && !confirm('Replace the current choices with the suggested mapping? You can still change any box before saving.')) return;
+    const l = await lib(); const s = l.autoMap(d.boxes, tpl);
+    setMapping(s); setDirty(true);
+    setMsg(`Suggested a source for ${Object.keys(s).length} of ${d.boxes.length} boxes. Check them with a test fill, then save.`);
+  };
+  const describeWhen = (m: BoxMap) => m.when ? `Only when ${byId.get(m.when.source)?.label || m.when.source} is ${m.when.in.join(' or ')}` : '';
   const preview = async (kind: 'names' | 'sample') => {
     const w = window.open('', '_blank'); setBusy(kind); setMsg('');
     try {
@@ -156,6 +167,7 @@ export function FormTemplateMap() {
           Entries with no box still go on the added pages, so nothing is lost.</div>
       </div>
       <div className="row">
+        <button className="btn" disabled={!!busy} onClick={suggest}>Use suggested mapping</button>
         <button className="btn" disabled={!!busy} onClick={() => preview('names')}>{busy === 'names' ? 'Building…' : 'Show box names on the PDF'}</button>
         <button className="btn" disabled={!!busy} onClick={() => preview('sample')}>{busy === 'sample' ? 'Building…' : 'Test fill with sample data'}</button>
         <label className="chk"><input type="checkbox" checked={onlyEmpty} onChange={(e) => setOnlyEmpty(e.target.checked)} />Only boxes not mapped yet</label>
@@ -185,11 +197,19 @@ export function FormTemplateMap() {
                       ))}
                     </select>
                     {b.kind === 'checkbox' && src?.options?.length ? (
-                      <select value={m?.option || ''} onChange={(e) => set(b.name, { source: m!.source, option: e.target.value || undefined })} style={{ marginLeft: 6 }}>
+                      <select value={m?.option || ''} onChange={(e) => set(b.name, { ...m!, option: e.target.value || undefined })} style={{ marginLeft: 6 }}>
                         <option value="">Ticked when filled in</option>
                         {src.options.map((o) => <option key={o} value={o}>Ticked when "{o}"</option>)}
                       </select>
                     ) : null}
+                    {src?.kind === 'text' && b.kind !== 'checkbox' && (
+                      <select value={m?.format || ''} onChange={(e) => set(b.name, { ...m!, format: (e.target.value || undefined) as BoxMap['format'] })} style={{ marginLeft: 6 }}>
+                        <option value="">Write the full value</option>
+                        <option value="code">Write the code only (L Low → L)</option>
+                        <option value="plain">Write the number only (no unit)</option>
+                      </select>
+                    )}
+                    {m?.when && <div className="sub">{describeWhen(m)} <button className="link" style={{ fontSize: 12 }} onClick={() => set(b.name, { ...m, when: undefined })}>remove condition</button></div>}
                     {src?.kind === 'image' && !picture && <div className="sub">The picture is placed over this box.</div>}
                     {dup && <div className="sub" style={{ color: 'var(--bad, #b91c1c)' }}>Also used by: {usedBy.get(m!.source)!.filter((x) => x !== b.name).join(', ')}</div>}
                   </td>
