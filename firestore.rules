@@ -18,19 +18,27 @@ service cloud.firestore {
 
     // Projects carry their ITP. Engineers set them up; supervisors see only their region.
     match /projects/{id} {
-      allow read: if isRole('engineer') || inMyRegion(resource.data.region);
+      allow read: if isRole('engineer') || isAdmin() || inMyRegion(resource.data.region);
       allow create, update, delete: if isRole('engineer');
     }
 
     // One document per form, per project, per day.
     match /submissions/{id} {
       // resource == null: a supervisor checks whether today's form exists before creating it.
-      allow read: if isRole('engineer') || (resource == null && isRole('supervisor')) || inMyRegion(resource.data.region);
+      allow read: if isRole('engineer') || isAdmin() || (resource == null && isRole('supervisor')) || inMyRegion(resource.data.region);
       allow create: if inMyRegion(request.resource.data.region) && request.resource.data.status == 'draft';
       allow update: if (inMyRegion(resource.data.region) && resource.data.status in ['draft', 'returned', 'not_needed']
                          && request.resource.data.status in ['draft', 'returned', 'submitted', 'not_needed'])
                     || (isRole('engineer') && resource.data.status == 'submitted'
-                         && request.resource.data.status in ['submitted', 'approved', 'returned']);
+                         && request.resource.data.status in ['submitted', 'approved', 'returned'])
+                    // Admin rollback: one stage back, never touching the entries, region or day.
+                    || (isAdmin() && request.resource.data.values == resource.data.values
+                         && request.resource.data.region == resource.data.region
+                         && request.resource.data.date == resource.data.date
+                         && ((resource.data.status == 'approved' && request.resource.data.status in ['submitted', 'returned'])
+                             || (resource.data.status == 'submitted' && request.resource.data.status == 'returned')
+                             || (resource.data.status == 'returned' && request.resource.data.status == 'submitted')
+                             || (resource.data.status == 'not_needed' && request.resource.data.status == 'draft')));
     }
 
     // The company's fillable PDF for each QF form and its box mapping. Engineers upload and use them.
@@ -39,9 +47,12 @@ service cloud.firestore {
     }
 
     // Approved forms register. Written once, by an engineer, on approval.
+    // An admin rollback only marks a line superseded; the line and its PDF stay.
     match /register/{id} {
-      allow read: if isRole('engineer') || inMyRegion(resource.data.region);
+      allow read: if isRole('engineer') || isAdmin() || inMyRegion(resource.data.region);
       allow create: if isRole('engineer');
+      allow update: if isAdmin() && !('supersededAt' in resource.data)
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['supersededAt', 'supersededBy', 'supersededReason']);
     }
 
     match /audit/{id} {

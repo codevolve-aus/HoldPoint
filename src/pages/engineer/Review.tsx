@@ -68,8 +68,12 @@ export default function Review() {
         blob = await buildPdf(tpl, final, project, me, at);
       }
       const clean = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-').trim();
-      const file = `${sub.formCode}_${project.jobNo}_${sub.date}_v${sub.version}.pdf`;
-      const path = `Approved/${clean(project.region)}/${clean(project.jobNo + ' ' + project.name)}/${clean(project.location)}/${sub.date}/${file}`;
+      const folder = `Approved/${clean(project.region)}/${clean(project.jobNo + ' ' + project.name)}/${clean(project.location)}/${sub.date}/`;
+      const base = `${sub.formCode}_${project.jobNo}_${sub.date}_v${sub.version}`;
+      // Filed PDFs are never overwritten: after an admin rollback, a re-approval of the same version gets its own name.
+      const earlier = sub.previousPdfPaths || [];
+      let path = `${folder}${base}.pdf`;
+      for (let n = 2; earlier.includes(path); n++) path = `${folder}${base}_${n}.pdf`;
       setBusy('Filing…');
       await uploadBytes(ref(storage, path), blob, { contentType: 'application/pdf' });
       await addDoc(collection(db, 'register'), {

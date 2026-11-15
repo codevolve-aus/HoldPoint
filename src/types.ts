@@ -118,6 +118,10 @@ export interface Submission {
   decidedAt?: string;
   decidedBy?: string;
   pdfPath?: string;
+  previousPdfPaths?: string[]; // PDFs filed before an admin rollback (kept, marked superseded in the register)
+  rolledBackAt?: string;
+  rolledBackBy?: string;
+  rollbackReason?: string;
   history: HistoryEntry[];
 }
 

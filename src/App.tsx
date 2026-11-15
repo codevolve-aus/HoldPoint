@@ -3,6 +3,7 @@ import { useAuth } from './lib/auth';
 import { configured } from './lib/firebase';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import AdminForms from './pages/admin/AdminForms';
 import { FormTemplateList, FormTemplateMap } from './pages/engineer/FormTemplates';
 import AdminUsers from './pages/admin/AdminUsers';
 import Itps from './pages/engineer/Itps';
@@ -41,6 +42,7 @@ export default function App() {
       <Route element={<Layout />}>
         {role.role === 'admin' && <>
           <Route path="/admin" element={<AdminUsers />} />
+          <Route path="/admin/forms" element={<AdminForms />} />
         </>}
         {role.role === 'engineer' && <>
           <Route path="/engineer" element={<Queue />} />
